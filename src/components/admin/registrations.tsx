@@ -21,6 +21,7 @@ import {
   fmtUtcLocal,
   type SortKey,
 } from "./primitives";
+import { QrPass } from "./qr-pass";
 
 export function Registrations({
   rows,
@@ -208,12 +209,15 @@ export function Registrations({
                       {fmtUtcLocal(r.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setDetail(r)}
-                        className="rounded-md px-2 py-1 text-xs font-medium text-gold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        Open
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {r.status === "Confirmed" && <QrPass row={r} />}
+                        <button
+                          onClick={() => setDetail(r)}
+                          className="rounded-md px-2 py-1 text-xs font-medium text-gold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          Open
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -339,6 +343,18 @@ function DetailPanel({
             ✕
           </button>
         </div>
+
+        {row.status === "Confirmed" && (
+          <div className="mt-5 flex items-center justify-between gap-4 rounded-xl border border-gold/30 bg-gold/5 p-3.5">
+            <div>
+              <p className="text-sm font-medium text-foreground">Entry pass</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                QR code for at-the-door verification.
+              </p>
+            </div>
+            <QrPass row={row} />
+          </div>
+        )}
 
         <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
           <Field label="School" value={row.school} />
