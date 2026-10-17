@@ -77,18 +77,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AI Studio App" },
-      { name: "description", content: "AI Studio Generated Project" },
-      { name: "author", content: "AI Studio" },
-      { property: "og:title", content: "AI Studio App" },
-      { property: "og:description", content: "AI Studio Generated Project" },
+      { title: "Sahasaknaada — Inter-school Audio Workshop" },
+      {
+        name: "description",
+        content:
+          "Sahasaknaada — an inter-school audio workshop by the Radio Club of D. S. Senanayake College. The future of sound starts here.",
+      },
+      { name: "author", content: "Radio Club of D. S. Senanayake College" },
+      {
+        property: "og:title",
+        content: "Sahasaknaada — Inter-school Audio Workshop",
+      },
+      {
+        property: "og:description",
+        content:
+          "An inter-school audio workshop by the Radio Club of D. S. Senanayake College. The future of sound starts here.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),

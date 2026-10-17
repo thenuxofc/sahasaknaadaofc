@@ -1,24 +1,53 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Hero } from "@/components/home/hero";
+import { Themes } from "@/components/home/themes";
+import { Gallery } from "@/components/home/gallery";
+import { GalleryCta } from "@/components/home/gallery-cta";
+import { Agenda } from "@/components/home/agenda";
+import { RegisterCtaBand } from "@/components/home/register-cta-band";
+import { Faq } from "@/components/home/faq";
+import { useReveal } from "@/hooks/use-reveal";
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Sahasaknaada — Inter-school Audio Workshop" },
+      {
+        name: "description",
+        content:
+          "Sahasaknaada is an inter-school audio workshop by the Radio Club of D. S. Senanayake College. Register to explore sound, science and creativity.",
+      },
+      { property: "og:title", content: "Sahasaknaada — Inter-school Audio Workshop" },
+      {
+        property: "og:description",
+        content:
+          "An inter-school audio workshop by the Radio Club of D. S. Senanayake College. The future of sound starts here.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  useReveal();
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-vibe-blank-page-placeholder="REMOVE_THIS"
-        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIHJ4PSIyNCIgZmlsbD0iI2YxZWZlNyIvPjxwYXRoIGQ9Ik0xMDAgNjR2NzJNNjQgMTAwaDcyIiBzdHJva2U9IiNjOWM0YjUiIHN0cm9rZS13aWR0aD0iOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main>
+        <Hero />
+        <Themes />
+        <Gallery />
+        <GalleryCta />
+        <Agenda />
+        <RegisterCtaBand />
+        <Faq />
+      </main>
+      <SiteFooter />
     </div>
   );
 }
