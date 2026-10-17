@@ -1,20 +1,10 @@
 import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 
-import {
-  seedDemoData,
-  clearDemoData,
-  type Registration,
-} from "@/lib/registration";
+import { seedDemoData, clearDemoData, type Registration } from "@/lib/registration";
 import { dateStamp, downloadCsv, toCsv } from "@/lib/admin-helpers";
 
-export function ExportPanel({
-  rows,
-  onReset,
-}: {
-  rows: Registration[];
-  onReset: () => void;
-}) {
+export function ExportPanel({ rows, onReset }: { rows: Registration[]; onReset: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,9 +32,7 @@ export function ExportPanel({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">
-          Reports &amp; Export
-        </h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Reports &amp; Export</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           CSV exports from stored records. Filenames include today's date.
           {rows.some((r) => r.isDemo) && " Demo records are labelled in the CSV."}
@@ -55,16 +43,12 @@ export function ExportPanel({
         <ExportCard
           title="All registrations"
           count={all.length}
-          onClick={() =>
-            run("all", all, `sahasaknaada-registrations-${dateStamp()}.csv`)
-          }
+          onClick={() => run("all", all, `sahasaknaada-registrations-${dateStamp()}.csv`)}
         />
         <ExportCard
           title="Attendance list"
           count={checkedIn.length}
-          onClick={() =>
-            run("checked in", checkedIn, `sahasaknaada-attendance-${dateStamp()}.csv`)
-          }
+          onClick={() => run("checked in", checkedIn, `sahasaknaada-attendance-${dateStamp()}.csv`)}
         />
         <ExportCard
           title="Not yet arrived"
@@ -84,9 +68,7 @@ export function ExportPanel({
               key={s}
               title={s}
               count={subset.length}
-              onClick={() =>
-                run(s, subset, `sahasaknaada-${slug}-${dateStamp()}.csv`)
-              }
+              onClick={() => run(s, subset, `sahasaknaada-${slug}-${dateStamp()}.csv`)}
             />
           );
         })}
@@ -106,8 +88,7 @@ export function ExportPanel({
       <div className="rounded-2xl border border-hairline bg-surface p-5">
         <h2 className="text-sm font-medium">Demo data</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Seed or clear labelled demo records so the dashboard isn't empty
-          during testing.
+          Seed or clear labelled demo records so the dashboard isn't empty during testing.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <button

@@ -20,9 +20,7 @@ export function Themes() {
               style={{ marginLeft: `${t.offset}rem` }}
               className={cn(
                 "reveal font-display text-5xl font-extrabold leading-none tracking-tight transition-colors sm:text-6xl md:text-7xl lg:text-8xl",
-                t.emphasis === "gold"
-                  ? "text-gold"
-                  : "text-foreground",
+                t.emphasis === "gold" ? "text-gold" : "text-foreground",
               )}
             >
               {t.word}
@@ -34,9 +32,9 @@ export function Themes() {
           data-reveal
           className="reveal mt-12 max-w-2xl text-base leading-relaxed text-muted-foreground text-pretty"
         >
-          Sound is the medium. Science is how we understand it. Creativity is
-          what we do with it. Sahasaknaada brings students from different
-          schools together to explore all three — hands on, in one room.
+          Sound is the medium. Science is how we understand it. Creativity is what we do with it.
+          Sahasaknaada brings students from different schools together to explore all three — hands
+          on, in one room.
         </p>
       </div>
     </section>

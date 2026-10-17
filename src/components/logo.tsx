@@ -8,13 +8,7 @@ import { EVENT } from "@/lib/content";
  * official school crest. Replace the mark with the supplied approved logo
  * asset when provided (see src/lib/content.ts → EVENT).
  */
-export function Logo({
-  className,
-  onDark = true,
-}: {
-  className?: string;
-  onDark?: boolean;
-}) {
+export function Logo({ className, onDark = true }: { className?: string; onDark?: boolean }) {
   return (
     <Link
       to="/"
@@ -27,13 +21,13 @@ export function Logo({
       <span
         aria-hidden
         className={cn(
-          "grid h-9 w-9 place-items-center rounded-xl border transition-colors",
+          "grid h-10 w-10 place-items-center overflow-hidden rounded-xl border p-1 transition-colors",
           onDark
             ? "border-border bg-surface text-gold"
             : "border-black/10 bg-black/5 text-gold-deep",
         )}
       >
-        <Mark className="h-5 w-5" />
+        <img src={EVENT.logoUrl} alt="" className="h-full w-full object-contain" />
       </span>
       <span className="flex flex-col leading-none">
         <span

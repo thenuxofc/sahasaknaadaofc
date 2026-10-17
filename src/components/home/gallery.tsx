@@ -21,15 +21,12 @@ export function Gallery() {
     <section id="gallery" className="border-b border-hairline">
       <div className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 md:py-24">
         <div className="mb-10 flex flex-col items-center text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">
-            Intra-school
-          </p>
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Intra-school</p>
           <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Moments from our workshops
           </h2>
           <p className="mt-3 max-w-md text-sm text-muted-foreground">
-            Moments from our previous intra-school workshops. Approved photos
-            to be added.
+            Moments from our previous intra-school workshops. Approved photos to be added.
           </p>
         </div>
 
@@ -53,12 +50,8 @@ export function Gallery() {
             >
               <GalleryPhoto item={item} />
               <figcaption className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/80 to-transparent p-4 pt-12">
-                <span className="text-sm font-semibold text-foreground">
-                  {item.title}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {item.caption}
-                </span>
+                <span className="text-sm font-semibold text-foreground">{item.title}</span>
+                <span className="text-xs text-muted-foreground">{item.caption}</span>
               </figcaption>
             </figure>
           ))}

@@ -43,10 +43,7 @@ export function Registrations({
   const [detail, setDetail] = useState<Registration | null>(null);
   const PAGE = 8;
 
-  const schools = useMemo(
-    () => [...new Set(rows.map((r) => r.school))].sort(),
-    [rows],
-  );
+  const schools = useMemo(() => [...new Set(rows.map((r) => r.school))].sort(), [rows]);
 
   const filtered = useMemo(() => {
     const norm = (s: string) => s.trim().toLowerCase();
@@ -96,9 +93,7 @@ export function Registrations({
   useEffect(() => setPage(0), [q, school, status, checkin, sort]);
 
   function toggleSort(key: SortKey) {
-    setSort((s) =>
-      s.key === key ? { key, dir: (s.dir * -1) as 1 | -1 } : { key, dir: 1 },
-    );
+    setSort((s) => (s.key === key ? { key, dir: (s.dir * -1) as 1 | -1 } : { key, dir: 1 }));
   }
 
   function resetFilters() {
@@ -111,12 +106,10 @@ export function Registrations({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">
-          Registrations
-        </h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Registrations</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {filtered.length} match{filtered.length === 1 ? "" : "es"} · search,
-          sort and filters apply across the full dataset.
+          {filtered.length} match{filtered.length === 1 ? "" : "es"} · search, sort and filters
+          apply across the full dataset.
         </p>
       </div>
 
@@ -199,16 +192,18 @@ export function Registrations({
                   <tr key={r.id} className="transition-colors hover:bg-surface/60">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">
-                          {r.fullName}
-                        </span>
+                        <span className="font-medium text-foreground">{r.fullName}</span>
                         {r.isDemo && <DemoTag />}
                       </div>
                       <span className="text-xs text-muted-foreground">{r.code}</span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{r.school}</td>
-                    <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
-                    <td className="px-4 py-3"><CheckBadge attendance={r.attendance} /></td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={r.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <CheckBadge attendance={r.attendance} />
+                    </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
                       {fmtUtcLocal(r.createdAt)}
                     </td>
@@ -279,9 +274,7 @@ export function Registrations({
           onClose={() => setDetail(null)}
           onChanged={() => {
             onChanged();
-            setDetail((d) =>
-              d ? listRegistrations().find((r) => r.id === d.id) ?? null : null,
-            );
+            setDetail((d) => (d ? (listRegistrations().find((r) => r.id === d.id) ?? null) : null));
           }}
         />
       )}
@@ -357,41 +350,36 @@ function DetailPanel({
         </dl>
 
         <div className="mt-6 rounded-xl border border-hairline bg-background p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Status
-          </p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {(
-              ["Submitted", "Confirmed", "Needs review", "Cancelled"] as RegistrationStatus[]
-            ).map((s) => (
-              <button
-                key={s}
-                onClick={() => {
-                  setStatus(row.id, s);
-                  onChanged();
-                }}
-                className={cn(
-                  "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  row.status === s
-                    ? "border-gold/50 bg-gold/10 text-gold"
-                    : "border-border text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {s}
-              </button>
-            ))}
+            {(["Submitted", "Confirmed", "Needs review", "Cancelled"] as RegistrationStatus[]).map(
+              (s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setStatus(row.id, s);
+                    onChanged();
+                  }}
+                  className={cn(
+                    "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    row.status === s
+                      ? "border-gold/50 bg-gold/10 text-gold"
+                      : "border-border text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {s}
+                </button>
+              ),
+            )}
           </div>
         </div>
 
         <div className="mt-4 rounded-xl border border-hairline bg-background p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Check-in
-          </p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Check-in</p>
           {row.attendance === "Checked in" ? (
             <div className="mt-3 flex items-center justify-between gap-4">
               <p className="text-sm text-foreground">
-                Checked in{" "}
-                {row.checkedInAt ? fmtUtcLocal(row.checkedInAt) : ""} by{" "}
+                Checked in {row.checkedInAt ? fmtUtcLocal(row.checkedInAt) : ""} by{" "}
                 {row.checkedInBy ?? "—"}
               </p>
               <button
@@ -418,9 +406,7 @@ function DetailPanel({
         </div>
 
         <div className="mt-4 rounded-xl border border-hairline bg-background p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Internal notes
-          </p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Internal notes</p>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -436,9 +422,7 @@ function DetailPanel({
         <div className="mt-6 flex items-center justify-between border-t border-hairline pt-5">
           {confirmDelete ? (
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs text-muted-foreground">
-                Delete this record?
-              </span>
+              <span className="text-xs text-muted-foreground">Delete this record?</span>
               <button
                 onClick={() => {
                   deleteRegistration(row.id);

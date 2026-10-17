@@ -27,7 +27,17 @@ export const Route = createFileRoute("/")({
           "An inter-school audio workshop by the Radio Club of D. S. Senanayake College. The future of sound starts here.",
       },
       { property: "og:type", content: "website" },
+      {
+        property: "og:image",
+        content:
+          "https://vibe.filesafe.space/1792255075376368762/attachments/a5dfb02f-b950-4856-8229-19cd618d2205.png",
+      },
       { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:image",
+        content:
+          "https://vibe.filesafe.space/1792255075376368762/attachments/a5dfb02f-b950-4856-8229-19cd618d2205.png",
+      },
     ],
   }),
   component: Index,

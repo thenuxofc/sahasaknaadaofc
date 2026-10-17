@@ -4,11 +4,7 @@ import { ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useReveal } from "@/hooks/use-reveal";
-import {
-  listRegistrations,
-  seedDemoData,
-  type Registration,
-} from "@/lib/registration";
+import { listRegistrations, seedDemoData, type Registration } from "@/lib/registration";
 import { AdminTopBar, Tabs, type Tab } from "@/components/admin/primitives";
 import { Overview } from "@/components/admin/overview";
 import { Registrations } from "@/components/admin/registrations";
@@ -77,16 +73,12 @@ function AdminSignIn({ onSignIn }: { onSignIn: (name: string) => void }) {
       >
         <div className="mb-6 flex items-center gap-2 text-gold">
           <ShieldCheck className="h-5 w-5" />
-          <span className="text-sm font-medium uppercase tracking-[0.18em]">
-            Organizer access
-          </span>
+          <span className="text-sm font-medium uppercase tracking-[0.18em]">Organizer access</span>
         </div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">
-          Sign in to the dashboard
-        </h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">Sign in to the dashboard</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Demo sign-in — any name and password works here. This is not a secure
-          login; enable Cloud for real organizer accounts.
+          Demo sign-in — any name and password works here. This is not a secure login; enable Cloud
+          for real organizer accounts.
         </p>
         <form
           onSubmit={(e) => {
@@ -132,13 +124,7 @@ function AdminSignIn({ onSignIn }: { onSignIn: (name: string) => void }) {
   );
 }
 
-function AdminDashboard({
-  staff,
-  onSignOut,
-}: {
-  staff: string;
-  onSignOut: () => void;
-}) {
+function AdminDashboard({ staff, onSignOut }: { staff: string; onSignOut: () => void }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [rows, setRows] = useState<Registration[]>([]);
 
@@ -168,9 +154,7 @@ function AdminDashboard({
           {tab === "registrations" && (
             <Registrations rows={rows} staff={staff} onChanged={refresh} />
           )}
-          {tab === "checkin" && (
-            <CheckIn rows={rows} staff={staff} onChanged={refresh} />
-          )}
+          {tab === "checkin" && <CheckIn rows={rows} staff={staff} onChanged={refresh} />}
           {tab === "export" && <ExportPanel rows={rows} onReset={refresh} />}
         </div>
       </div>

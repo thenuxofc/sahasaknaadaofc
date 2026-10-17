@@ -6,16 +6,12 @@ import { useEffect, useRef } from "react";
  * `selector`) to any element; it toggles the `.is-visible` class that
  * the `.reveal` utility in styles.css animates.
  */
-export function useReveal<T extends HTMLElement = HTMLElement>(
-  selector = "[data-reveal]",
-) {
+export function useReveal<T extends HTMLElement = HTMLElement>(selector = "[data-reveal]") {
   const ref = useRef<T>(null);
 
   useEffect(() => {
     const root = ref.current ?? document;
-    const els = Array.from(
-      root.querySelectorAll<HTMLElement>(selector),
-    );
+    const els = Array.from(root.querySelectorAll<HTMLElement>(selector));
     if (els.length === 0) return;
 
     const reduce =

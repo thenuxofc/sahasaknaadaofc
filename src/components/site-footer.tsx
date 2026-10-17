@@ -31,7 +31,10 @@ export function SiteFooter() {
                       {s.label}
                     </a>
                   ) : (
-                    <span className="text-sm text-muted-foreground" title="Link to be added by the site editor">
+                    <span
+                      className="text-sm text-muted-foreground"
+                      title="Link to be added by the site editor"
+                    >
                       {s.label} · to be added
                     </span>
                   )}

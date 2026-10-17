@@ -7,11 +7,7 @@
  * secured without a real backend; see the note at the bottom of this file.
  */
 
-export type RegistrationStatus =
-  | "Submitted"
-  | "Confirmed"
-  | "Needs review"
-  | "Cancelled";
+export type RegistrationStatus = "Submitted" | "Confirmed" | "Needs review" | "Cancelled";
 
 export type AttendanceStatus = "Not checked in" | "Checked in";
 
@@ -59,9 +55,7 @@ function writeAll(rows: Registration[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(rows));
   // Notify same-tab listeners.
-  window.dispatchEvent(
-    new CustomEvent("sahasaknaada:registrations-updated"),
-  );
+  window.dispatchEvent(new CustomEvent("sahasaknaada:registrations-updated"));
 }
 
 function makeId() {
@@ -81,9 +75,7 @@ function makeCode() {
   return `SSA-${n}`;
 }
 
-export function addRegistration(
-  input: RegistrationInput,
-): { ok: true; record: Registration } {
+export function addRegistration(input: RegistrationInput): { ok: true; record: Registration } {
   const record: Registration = {
     id: makeId(),
     code: makeCode(),
@@ -110,17 +102,12 @@ export function listRegistrations(): Registration[] {
   return readAll();
 }
 
-export function findLikelyDuplicate(
-  input: RegistrationInput,
-  existing: Registration[],
-): boolean {
+export function findLikelyDuplicate(input: RegistrationInput, existing: Registration[]): boolean {
   const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
   const name = norm(input.fullName);
   const email = norm(input.email);
   if (!name) return false;
-  return existing.some(
-    (r) => norm(r.email) === email || norm(r.fullName) === name,
-  );
+  return existing.some((r) => norm(r.email) === email || norm(r.fullName) === name);
 }
 
 export function setStatus(id: string, status: RegistrationStatus) {
@@ -218,16 +205,14 @@ export function seedDemoData(staff: string) {
       isDemo: true,
     },
   ];
-  writeAll(
-    [
-      ...demos.map<Registration>((d) => ({
-        ...d,
-        id: makeId(),
-        code: makeCode(),
-      })),
-      ...rows,
-    ],
-  );
+  writeAll([
+    ...demos.map<Registration>((d) => ({
+      ...d,
+      id: makeId(),
+      code: makeCode(),
+    })),
+    ...rows,
+  ]);
 }
 
 export function clearDemoData() {

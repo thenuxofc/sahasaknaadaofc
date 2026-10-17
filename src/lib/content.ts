@@ -14,12 +14,16 @@ export type NavSection = { label: string; href: string };
 
 export const EVENT = {
   name: "Sahasaknaada",
+  edition: "Sahasaknaada '26",
   tagline: "Inter-school audio workshop",
   host: "Radio Club of D. S. Senanayake College",
   heroHeadline: "The Future of Sound Starts Here",
   heroAccentWord: "Sound",
   heroCopy:
     "Sahasaknaada is an inter-school audio workshop by the Radio Club of D. S. Senanayake College — bringing students together to explore sound, audio technology and creativity.",
+  /** Approved official event logo */
+  logoUrl:
+    "https://vibe.filesafe.space/1792255075376368762/attachments/a5dfb02f-b950-4856-8229-19cd618d2205.png",
 };
 
 export const NAV_SECTIONS: NavSection[] = [
@@ -159,13 +163,7 @@ export const COPYRIGHT_YEAR = "—";
  * Registration form field configuration.
  * Organizers must confirm which fields are included and required.
  */
-export type FieldKey =
-  | "fullName"
-  | "school"
-  | "grade"
-  | "email"
-  | "phone"
-  | "notes";
+export type FieldKey = "fullName" | "school" | "grade" | "email" | "phone" | "notes";
 
 export type FieldDef = {
   key: FieldKey;
@@ -182,5 +180,11 @@ export const REG_FIELDS: FieldDef[] = [
   { key: "grade", label: "Grade / year", type: "text", required: true, maxLength: 20 },
   { key: "email", label: "Email", type: "email", required: true, maxLength: 120 },
   { key: "phone", label: "Contact number", type: "tel", required: true, maxLength: 20 },
-  { key: "notes", label: "Anything else we should know? (optional)", type: "text", required: false, maxLength: 300 },
+  {
+    key: "notes",
+    label: "Anything else we should know? (optional)",
+    type: "text",
+    required: false,
+    maxLength: 300,
+  },
 ];

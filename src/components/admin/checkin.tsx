@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
 import { Undo2 } from "lucide-react";
 
-import {
-  checkIn,
-  undoCheckIn,
-  type Registration,
-} from "@/lib/registration";
+import { checkIn, undoCheckIn, type Registration } from "@/lib/registration";
 import { fmtUtcLocal, DemoTag } from "./primitives";
 
 export function CheckIn({
@@ -18,9 +14,7 @@ export function CheckIn({
   onChanged: () => void;
 }) {
   const [q, setQ] = useState("");
-  const [done, setDone] = useState<{ name: string; time: string } | null>(
-    null,
-  );
+  const [done, setDone] = useState<{ name: string; time: string } | null>(null);
 
   const matches = useMemo(() => {
     const norm = (s: string) => s.trim().toLowerCase();
@@ -41,9 +35,7 @@ export function CheckIn({
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">
-          Check-in
-        </h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Check-in</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Search by name, registration code, school or email.
         </p>
@@ -107,9 +99,7 @@ export function CheckIn({
                   if (rec) {
                     setDone({
                       name: r.fullName,
-                      time: fmtUtcLocal(
-                        rec.checkedInAt ?? new Date().toISOString(),
-                      ),
+                      time: fmtUtcLocal(rec.checkedInAt ?? new Date().toISOString()),
                     });
                     onChanged();
                   }

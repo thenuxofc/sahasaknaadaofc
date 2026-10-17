@@ -15,8 +15,8 @@ export function Faq() {
             FAQ
           </h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Answers are being confirmed by the organizers. Placeholders below —
-            not final event details.
+            Answers are being confirmed by the organizers. Placeholders below — not final event
+            details.
           </p>
         </div>
 
@@ -36,9 +36,7 @@ export function Faq() {
                     onClick={() => setOpen(isOpen ? null : f.id)}
                     className="flex w-full items-center justify-between gap-6 py-5 text-left transition-colors hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background rounded"
                   >
-                    <span className="text-lg font-medium text-foreground">
-                      {f.question}
-                    </span>
+                    <span className="text-lg font-medium text-foreground">{f.question}</span>
                     <span
                       className={cn(
                         "grid h-8 w-8 shrink-0 place-items-center rounded-full border border-hairline text-muted-foreground transition-colors",
@@ -46,11 +44,7 @@ export function Faq() {
                       )}
                       aria-hidden
                     >
-                      {isOpen ? (
-                        <Minus className="h-4 w-4" />
-                      ) : (
-                        <Plus className="h-4 w-4" />
-                      )}
+                      {isOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                     </span>
                   </button>
                 </h3>

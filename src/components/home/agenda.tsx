@@ -13,8 +13,8 @@ export function Agenda() {
               Agenda
             </h2>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
-              The final agenda is being confirmed by the organizers. Until then,
-              this is a clearly marked placeholder — not a final schedule.
+              The final agenda is being confirmed by the organizers. Until then, this is a clearly
+              marked placeholder — not a final schedule.
             </p>
           </div>
 
@@ -26,9 +26,7 @@ export function Agenda() {
                 className="reveal flex items-baseline justify-between gap-6 py-5"
               >
                 <div>
-                  <span className="text-lg font-medium text-foreground">
-                    {entry.item}
-                  </span>
+                  <span className="text-lg font-medium text-foreground">{entry.item}</span>
                   {entry.isPlaceholder && (
                     <span className="ml-3 rounded-full border border-hairline px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                       To be announced

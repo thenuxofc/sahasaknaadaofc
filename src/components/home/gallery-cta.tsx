@@ -27,8 +27,7 @@ export function GalleryCta() {
                 Be part of the room where sound comes alive.
               </h2>
               <p className="mt-4 text-base leading-relaxed opacity-80">
-                Students from any school are welcome to register and take part
-                in Sahasaknaada.
+                Students from any school are welcome to register and take part in Sahasaknaada.
               </p>
             </div>
 

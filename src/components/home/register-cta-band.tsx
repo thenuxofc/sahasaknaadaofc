@@ -31,8 +31,8 @@ export function RegisterCtaBand() {
                 Your place at Sahasaknaada is one registration away.
               </h2>
               <p className="mt-5 text-lg leading-relaxed opacity-80 text-pretty">
-                Register your spot for the inter-school audio workshop. We'll
-                confirm the details once your registration is received.
+                Register your spot for the inter-school audio workshop. We'll confirm the details
+                once your registration is received.
               </p>
             </div>
 

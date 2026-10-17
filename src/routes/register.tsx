@@ -59,8 +59,8 @@ function RegisterPage() {
             Register for {EVENT.name}
           </h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
-            Fill in your details to register for the inter-school audio
-            workshop. We confirm your spot once your registration is received.
+            Fill in your details to register for the inter-school audio workshop. We confirm your
+            spot once your registration is received.
           </p>
         </header>
 
@@ -180,9 +180,9 @@ function RegisterForm() {
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-black/15 bg-black/5 p-4 text-sm">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
-              We may already have a registration under this name or email
-              (code <strong className="font-semibold">{code}</strong>). Your new
-              registration was still saved — the organizers will review it.
+              We may already have a registration under this name or email (code{" "}
+              <strong className="font-semibold">{code}</strong>). Your new registration was still
+              saved — the organizers will review it.
             </p>
           </div>
         )}
@@ -192,14 +192,8 @@ function RegisterForm() {
             const isNotes = f.key === "notes";
             const err = errors[f.key];
             return (
-              <div
-                key={f.key}
-                className={cn("flex flex-col gap-2", isNotes && "sm:col-span-2")}
-              >
-                <label
-                  htmlFor={`field-${f.key}`}
-                  className="text-sm font-medium text-black/85"
-                >
+              <div key={f.key} className={cn("flex flex-col gap-2", isNotes && "sm:col-span-2")}>
+                <label htmlFor={`field-${f.key}`} className="text-sm font-medium text-black/85">
                   {f.label}
                   {f.required && (
                     <span className="ml-1 text-black/50" aria-hidden>
@@ -213,9 +207,7 @@ function RegisterForm() {
                     name={f.key}
                     value={values[f.key]}
                     maxLength={f.maxLength}
-                    onChange={(e) =>
-                      setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                    }
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                     aria-invalid={!!err}
                     aria-describedby={err ? `${f.key}-error` : undefined}
                     rows={3}
@@ -230,22 +222,15 @@ function RegisterForm() {
                     autoComplete={f.key === "email" ? "email" : f.key === "phone" ? "tel" : "name"}
                     value={values[f.key]}
                     maxLength={f.maxLength}
-                    onChange={(e) =>
-                      setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                    }
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                     aria-invalid={!!err}
                     aria-describedby={err ? `${f.key}-error` : undefined}
                     className="w-full rounded-lg border border-black/20 bg-white/70 px-3.5 py-2.5 text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-1 focus-visible:ring-offset-gold"
                   />
                 )}
-                {f.hint && !err && (
-                  <p className="text-xs text-black/55">{f.hint}</p>
-                )}
+                {f.hint && !err && <p className="text-xs text-black/55">{f.hint}</p>}
                 {err && (
-                  <p
-                    id={`${f.key}-error`}
-                    className="text-xs font-medium text-black/80"
-                  >
+                  <p id={`${f.key}-error`} className="text-xs font-medium text-black/80">
                     {err}
                   </p>
                 )}
@@ -311,13 +296,18 @@ function SuccessPanel({
         {code}
       </p>
       <p className="mt-5 max-w-md mx-auto text-sm text-muted-foreground">
-        The organizers will confirm the workshop details with you. This is a
-        demo registration stored in your browser — enable Cloud for a real,
-        saved record.
+        The organizers will confirm the workshop details with you. This is a demo registration
+        stored in your browser — enable Cloud for a real, saved record.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Button asChild variant="outline" className="border-border bg-transparent text-foreground hover:bg-surface">
-          <Link to="/" className="focus-visible:outline-none">Back to home</Link>
+        <Button
+          asChild
+          variant="outline"
+          className="border-border bg-transparent text-foreground hover:bg-surface"
+        >
+          <Link to="/" className="focus-visible:outline-none">
+            Back to home
+          </Link>
         </Button>
         <Button
           onClick={onReset}

@@ -20,21 +20,14 @@ export function fmtUtcLocal(iso: string) {
 
 /* ---------------- Top bar + tabs ---------------- */
 
-export function AdminTopBar({
-  staff,
-  onSignOut,
-}: {
-  staff: string;
-  onSignOut: () => void;
-}) {
+export function AdminTopBar({ staff, onSignOut }: { staff: string; onSignOut: () => void }) {
   return (
     <div className="sticky top-0 z-40 border-b border-hairline bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
         <Logo />
         <div className="flex items-center gap-4">
           <span className="hidden text-sm text-muted-foreground sm:inline">
-            Signed in as{" "}
-            <strong className="font-medium text-foreground">{staff}</strong>
+            Signed in as <strong className="font-medium text-foreground">{staff}</strong>
           </span>
           <button
             onClick={onSignOut}
@@ -48,13 +41,7 @@ export function AdminTopBar({
   );
 }
 
-export function Tabs({
-  tab,
-  setTab,
-}: {
-  tab: Tab;
-  setTab: (t: Tab) => void;
-}) {
+export function Tabs({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const items: { id: Tab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "registrations", label: "Registrations" },
@@ -99,27 +86,18 @@ export function StatusBadge({ status }: { status: RegistrationStatus }) {
   return <span className={cn("text-xs font-medium", map[status])}>{status}</span>;
 }
 
-export function CheckBadge({
-  attendance,
-}: {
-  attendance: Registration["attendance"];
-}) {
+export function CheckBadge({ attendance }: { attendance: Registration["attendance"] }) {
   const isIn = attendance === "Checked in";
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
-        isIn
-          ? "border-gold/40 text-gold"
-          : "border-hairline text-muted-foreground",
+        isIn ? "border-gold/40 text-gold" : "border-hairline text-muted-foreground",
       )}
     >
       <span
         aria-hidden
-        className={cn(
-          "h-1.5 w-1.5 rounded-full",
-          isIn ? "bg-gold" : "bg-muted-foreground/50",
-        )}
+        className={cn("h-1.5 w-1.5 rounded-full", isIn ? "bg-gold" : "bg-muted-foreground/50")}
       />
       {isIn ? "Checked in" : "Not checked in"}
     </span>
@@ -137,9 +115,7 @@ export function DemoTag() {
 export function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="mt-1 text-foreground">{value}</dd>
     </div>
   );
@@ -158,9 +134,7 @@ export function Select({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      {label && (
-        <span className="sr-only">{label}</span>
-      )}
+      {label && <span className="sr-only">{label}</span>}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -196,10 +170,7 @@ export function Th({
         {label}
         <span
           aria-hidden
-          className={cn(
-            "text-[10px]",
-            sort.key === k ? "text-gold" : "text-muted-foreground/60",
-          )}
+          className={cn("text-[10px]", sort.key === k ? "text-gold" : "text-muted-foreground/60")}
         >
           {sort.key === k ? (sort.dir === 1 ? "▲" : "▼") : "↕"}
         </span>
