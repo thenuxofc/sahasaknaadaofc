@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
+import { TicketPass } from "@/components/bits/ticket-pass";
 import { REG_FIELDS, EVENT, type FieldKey } from "@/lib/content";
 import {
   addRegistration,
@@ -285,7 +286,12 @@ function SuccessPanel({
       <p className="mt-4 inline-block rounded-xl border border-hairline bg-background px-5 py-2.5 font-display text-2xl font-bold tracking-wider text-gold">
         {code}
       </p>
-      <p className="mt-5 max-w-md mx-auto text-sm text-muted-foreground">
+
+      <div className="mt-8 w-full">
+        <TicketPass code={code} name={name} />
+      </div>
+
+      <p className="mt-6 max-w-md mx-auto text-sm text-muted-foreground">
         The organizers will confirm the workshop details with you. This is a demo registration
         stored in your browser — enable Cloud for a real, saved record.
       </p>
