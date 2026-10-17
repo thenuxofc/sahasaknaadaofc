@@ -19,7 +19,7 @@ export function TicketPass({ code, name }: { code: string; name: string }) {
     let active = true;
     QRCode.toDataURL(code, {
       margin: 0,
-      width: 220,
+      width: 240,
       errorCorrectionLevel: "M",
       color: { dark: "#0A0A0A", light: "#F5B921" },
     })
@@ -70,6 +70,31 @@ export function TicketPass({ code, name }: { code: string; name: string }) {
         image=""
         imageAlt=""
         scrim={false}
+        stub={
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#F5B921] px-3 py-4 text-[#0A0A0A]">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#0A0A0A]/70">
+              Scan at door
+            </span>
+            <div className="grid h-28 w-28 place-items-center rounded-lg bg-[#F5B921] p-1.5">
+              {qr ? (
+                <img
+                  src={qr}
+                  alt={`QR code encoding registration code ${code}`}
+                  width={112}
+                  height={112}
+                  className="h-full w-full"
+                />
+              ) : (
+                <div className="grid h-full w-full place-items-center rounded bg-[#0A0A0A]/10">
+                  <QrCode className="h-9 w-9 text-[#0A0A0A]/50" aria-hidden />
+                </div>
+              )}
+            </div>
+            <span className="font-mono text-[11px] font-bold tracking-[0.14em] text-[#0A0A0A]">
+              {code}
+            </span>
+          </div>
+        }
       >
         <div className="flex h-full flex-col justify-between px-7 py-6 text-[#F5F5F5]">
           <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-gold">
@@ -95,38 +120,6 @@ export function TicketPass({ code, name }: { code: string; name: string }) {
           </div>
         </div>
       </TearTicket>
-
-      {/* The stub is rendered inside TearTicket by reference; render the QR
-          here as a sibling pass-card so the QR is always visible regardless of
-          tear state. This keeps the QR accessible even on reduced-motion /
-          no-canvas devices. */}
-      <PassQr code={code} qr={qr} />
     </motion.div>
-  );
-}
-
-function PassQr({ code, qr }: { code: string; qr: string | null }) {
-  return (
-    <div
-      className="ml-4 hidden shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-[#262626] bg-[#0D0D0D] px-5 py-6 sm:flex"
-      aria-label={`QR entry pass for ${code}`}
-    >
-      <div className="grid h-40 w-40 place-items-center rounded-xl border border-gold/30 bg-[#F5B921] p-2.5">
-        {qr ? (
-          <img
-            src={qr}
-            alt={`QR code encoding registration code ${code}`}
-            width={150}
-            height={150}
-            className="h-full w-full"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center rounded-lg bg-[#0A0A0A]/10">
-            <QrCode className="h-10 w-10 text-[#0A0A0A]/60" aria-hidden />
-          </div>
-        )}
-      </div>
-      <span className="font-mono text-xs tracking-[0.2em] text-[#A3A3A3]">{code}</span>
-    </div>
   );
 }

@@ -172,11 +172,34 @@
     transform: none;
   }
 
+  /* Decorative sound-wave bars for the register hero */
+  .wave-bar {
+    transform-origin: bottom;
+    animation: wave-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes wave-pulse {
+    0%,
+    100% {
+      transform: scaleY(0.35);
+      opacity: 0.5;
+    }
+    50% {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .reveal {
       opacity: 1 !important;
       transform: none !important;
       transition: none !important;
+    }
+    .wave-bar {
+      animation: none;
+      transform: none;
+      opacity: 0.7;
     }
     html {
       scroll-behavior: auto;

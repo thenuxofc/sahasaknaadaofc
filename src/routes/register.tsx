@@ -1,6 +1,13 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -53,16 +60,33 @@ function RegisterPage() {
         </Link>
 
         <header className="mb-10">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold">
-            {EVENT.tagline}
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Register for {EVENT.name}
+          <div className="mb-5 flex items-center gap-3">
+            <span className="inline-flex h-9 items-center rounded-full border border-gold/30 bg-gold/10 px-3 text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+              <Sparkles className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+              {EVENT.tagline}
+            </span>
+          </div>
+          <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl text-balance">
+            Register for{" "}
+            <span className="bg-gradient-to-r from-gold to-gold-deep bg-clip-text text-transparent">
+              {EVENT.name}
+            </span>
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty">
             Fill in your details to register for the inter-school audio workshop. We confirm your
             spot once your registration is received.
           </p>
+
+          {/* Decorative sound-wave bar — pure CSS, no canvas, respects reduced motion */}
+          <div className="mt-8 flex h-10 items-end gap-1 overflow-hidden" aria-hidden>
+            {WAVE_BARS.map((h, i) => (
+              <span
+                key={i}
+                className="wave-bar w-1 shrink-0 rounded-full bg-gradient-to-t from-gold/40 to-gold"
+                style={{ height: `${h}%`, animationDelay: `${(i % 12) * 90}ms` }}
+              />
+            ))}
+          </div>
         </header>
 
         <RegisterForm />
@@ -71,6 +95,10 @@ function RegisterPage() {
     </div>
   );
 }
+
+const WAVE_BARS = Array.from({ length: 48 }, (_, i) =>
+  Math.round(20 + 60 * Math.abs(Math.sin(i * 0.5)) + 20 * Math.abs(Math.cos(i * 0.3))),
+);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[0-9+\-\s()]{7,20}$/;
@@ -164,9 +192,28 @@ function RegisterForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="relative overflow-hidden rounded-4xl border border-[#e5a710] bg-[#f5b921] px-6 py-8 text-[#0a0a0a] shadow-[0_20px_60px_-15px_rgba(245,185,33,0.35)] sm:px-10 sm:py-10"
+      className="relative overflow-hidden rounded-4xl border border-[#e5a710] bg-[#f5b921] px-6 py-8 text-[#0a0a0a] shadow-[0_24px_70px_-20px_rgba(245,185,33,0.5)] sm:px-10 sm:py-10"
     >
+      {/* Ambient sheen on the gold panel */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-black/10"
+      />
       <div className="relative">
+        <div className="mb-7 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-[#0a0a0a] sm:text-3xl">
+              Your registration
+            </h2>
+            <p className="mt-1 text-sm font-medium text-[#0a0a0a]/70">
+              All fields marked with <span className="font-semibold">*</span> are required.
+            </p>
+          </div>
+          <span className="hidden shrink-0 rounded-full border border-black/15 bg-black/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[#0a0a0a]/70 sm:inline-block">
+            {EVENT.name}
+          </span>
+        </div>
+
         {status === "duplicate" && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-black/15 bg-black/5 p-4 text-sm">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -202,7 +249,7 @@ function RegisterForm() {
                     aria-invalid={!!err}
                     aria-describedby={err ? `${f.key}-error` : undefined}
                     rows={3}
-                    className="w-full rounded-lg border border-black/20 bg-white/70 px-3.5 py-2.5 text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-1 focus-visible:ring-offset-gold"
+                    className="w-full rounded-lg border border-black/20 bg-white/70 px-3.5 py-2.5 text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-1 focus-visible:ring-offset-[#f5b921]"
                   />
                 ) : (
                   <input
@@ -216,7 +263,7 @@ function RegisterForm() {
                     onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                     aria-invalid={!!err}
                     aria-describedby={err ? `${f.key}-error` : undefined}
-                    className="w-full rounded-lg border border-black/20 bg-white/70 px-3.5 py-2.5 text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-1 focus-visible:ring-offset-gold"
+                    className="w-full rounded-lg border border-black/20 bg-white/70 px-3.5 py-2.5 text-sm text-black placeholder:text-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40 focus-visible:ring-offset-1 focus-visible:ring-offset-[#f5b921]"
                   />
                 )}
                 {f.hint && !err && <p className="text-xs text-black/55">{f.hint}</p>}
@@ -245,7 +292,10 @@ function RegisterForm() {
                 Submitting…
               </>
             ) : (
-              "Submit registration"
+              <>
+                Submit registration
+                <ArrowRight className="h-4 w-4" />
+              </>
             )}
           </Button>
         </div>
