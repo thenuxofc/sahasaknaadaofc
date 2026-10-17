@@ -163,18 +163,8 @@ function RegisterForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="ambient-gold-soft relative overflow-hidden rounded-4xl border border-gold-deep/30 bg-gold px-6 py-8 text-gold-foreground sm:px-10 sm:py-10"
+      className="relative overflow-hidden rounded-4xl border border-[#e5a710] bg-[#f5b921] px-6 py-8 text-[#0a0a0a] shadow-[0_20px_60px_-15px_rgba(245,185,33,0.35)] sm:px-10 sm:py-10"
     >
-      <div className="absolute inset-0 opacity-[0.08]" aria-hidden>
-        <div
-          className="h-full w-full"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 85% 15%, var(--color-gold-deep) 0, transparent 50%)",
-          }}
-        />
-      </div>
-
       <div className="relative">
         {status === "duplicate" && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-black/15 bg-black/5 p-4 text-sm">

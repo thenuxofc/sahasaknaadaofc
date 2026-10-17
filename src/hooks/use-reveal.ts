@@ -14,6 +14,14 @@ export function useReveal<T extends HTMLElement = HTMLElement>(selector = "[data
     const els = Array.from(root.querySelectorAll<HTMLElement>(selector));
     if (els.length === 0) return;
 
+    // Immediately mark in-viewport elements visible so there is no dark/blank delay
+    els.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        el.classList.add("is-visible");
+      }
+    });
+
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -32,10 +40,14 @@ export function useReveal<T extends HTMLElement = HTMLElement>(selector = "[data
           }
         });
       },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.1 },
+      { rootMargin: "0px 0px 50px 0px", threshold: 0.05 },
     );
 
-    els.forEach((el) => io.observe(el));
+    els.forEach((el) => {
+      if (!el.classList.contains("is-visible")) {
+        io.observe(el);
+      }
+    });
     return () => io.disconnect();
   }, [selector]);
 

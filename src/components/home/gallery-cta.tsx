@@ -9,24 +9,14 @@ export function GalleryCta() {
       <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-20">
         <div
           data-reveal
-          className="reveal ambient-gold-soft relative overflow-hidden rounded-3xl border border-gold-deep/30 bg-gold px-8 py-12 text-gold-foreground sm:px-14 md:py-16"
+          className="reveal relative overflow-hidden rounded-3xl border border-[#e5a710] bg-[#f5b921] px-8 py-12 text-[#0a0a0a] shadow-[0_16px_50px_-12px_rgba(245,185,33,0.35)] sm:px-14 md:py-16"
         >
-          <div className="absolute inset-0 opacity-10" aria-hidden>
-            <div
-              className="h-full w-full"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 85% 20%, var(--color-gold-deep) 0, transparent 45%)",
-              }}
-            />
-          </div>
-
           <div className="relative flex flex-col items-start gap-8 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
-              <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+              <h2 className="font-display text-3xl font-bold tracking-tight text-[#0a0a0a] sm:text-4xl md:text-5xl">
                 Be part of the room where sound comes alive.
               </h2>
-              <p className="mt-4 text-base leading-relaxed opacity-80">
+              <p className="mt-4 text-base font-medium leading-relaxed text-[#0a0a0a]/80">
                 Students from any school are welcome to register and take part in Sahasaknaada.
               </p>
             </div>
@@ -34,9 +24,12 @@ export function GalleryCta() {
             <Button
               asChild
               size="lg"
-              className="shrink-0 border border-black/10 bg-black text-white hover:border-black/20 hover:bg-black/85 focus-visible:ring-black/40"
+              className="shrink-0 rounded-xl border border-black bg-black px-6 py-3 font-semibold text-white shadow-md transition-colors hover:bg-black/85 focus-visible:ring-2 focus-visible:ring-black"
             >
-              <Link to="/register" className="gap-2 focus-visible:outline-none">
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 focus-visible:outline-none"
+              >
                 Register Now
                 <ArrowRight className="h-4 w-4" />
               </Link>
