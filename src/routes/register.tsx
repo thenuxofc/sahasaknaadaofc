@@ -320,30 +320,38 @@ function SuccessPanel({
   onReset: () => void;
 }) {
   return (
-    <div
-      data-reveal
-      className="reveal rounded-4xl border border-hairline bg-surface px-6 py-12 text-center sm:px-12"
-    >
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-gold/30 bg-gold/10 text-gold">
-        <CheckCircle2 className="h-7 w-7" />
+    <div className="rounded-4xl border border-hairline bg-surface px-6 py-10 text-center sm:px-12 sm:py-12 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.7)] animate-in fade-in-50 duration-500">
+      <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-gold/40 bg-gold/15 text-gold shadow-[0_0_30px_rgba(245,185,33,0.3)]">
+        <CheckCircle2 className="h-8 w-8" />
       </div>
-      <h2 className="mt-6 font-display text-3xl font-bold tracking-tight text-foreground">
-        You're registered, {name.split(" ")[0] || "there"}.
+      <span className="mt-4 inline-block text-xs font-semibold uppercase tracking-[0.24em] text-gold">
+        Registration Confirmed
+      </span>
+      <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        You're registered, {name.split(" ")[0] || "there"}!
       </h2>
-      <p className="mt-3 text-base text-muted-foreground">
-        Your registration was saved. Keep this code for your records:
-      </p>
-      <p className="mt-4 inline-block rounded-xl border border-hairline bg-background px-5 py-2.5 font-display text-2xl font-bold tracking-wider text-gold">
-        {code}
+      <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+        Your entry pass has been generated. Save this code or scan the QR at the door:
       </p>
 
-      <div className="mt-8 w-full">
+      {/* Prominent Code Callout */}
+      <div className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-gold/30 bg-background/80 px-6 py-3 backdrop-blur-sm">
+        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Pass Code
+        </span>
+        <span className="font-mono text-2xl font-bold tracking-wider text-gold sm:text-3xl">
+          {code}
+        </span>
+      </div>
+
+      {/* Interactive Tear Ticket with QR Code */}
+      <div className="mt-8 flex w-full justify-center">
         <TicketPass code={code} name={name} />
       </div>
 
-      <p className="mt-6 max-w-md mx-auto text-sm text-muted-foreground">
-        The organizers will confirm the workshop details with you. This is a demo registration
-        stored in your browser — enable Cloud for a real, saved record.
+      <p className="mx-auto mt-6 max-w-md text-xs text-muted-foreground">
+        The organizers will confirm the workshop details with you. Keep this ticket or take a
+        screenshot of your pass code.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Button
@@ -357,7 +365,7 @@ function SuccessPanel({
         </Button>
         <Button
           onClick={onReset}
-          className="border border-gold/40 bg-primary text-primary-foreground hover:border-gold/70 hover:bg-secondary focus-visible:ring-gold"
+          className="border border-gold/40 bg-gold text-[#0A0A0A] font-semibold hover:bg-gold-deep focus-visible:ring-gold"
         >
           Register another student
         </Button>

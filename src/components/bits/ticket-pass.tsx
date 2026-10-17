@@ -6,13 +6,11 @@
 import { useEffect, useState } from "react";
 import * as QRCode from "qrcode";
 import { QrCode, Ticket as TicketIcon } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
 
 import TearTicket from "@/components/bits/tear-ticket";
 import { EVENT } from "@/lib/content";
 
 export function TicketPass({ code, name }: { code: string; name: string }) {
-  const reduce = useReducedMotion();
   const [qr, setQr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,12 +33,7 @@ export function TicketPass({ code, name }: { code: string; name: string }) {
   }, [code]);
 
   return (
-    <motion.div
-      className="flex w-full justify-center"
-      initial={reduce ? false : { opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: reduce ? 0 : 0.15, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div className="flex w-full justify-center">
       <TearTicket
         width={520}
         height={280}
@@ -120,6 +113,6 @@ export function TicketPass({ code, name }: { code: string; name: string }) {
           </div>
         </div>
       </TearTicket>
-    </motion.div>
+    </div>
   );
 }

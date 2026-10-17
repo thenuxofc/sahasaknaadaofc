@@ -32,7 +32,7 @@ type TearTicketProps = {
   orientation?: "horizontal" | "vertical";
   torn?: boolean;
   defaultTorn?: boolean;
-  onTear?: (() => void) | undefined;
+  onTear?: () => void;
   width?: number;
   height?: number;
   stubSize?: number;
