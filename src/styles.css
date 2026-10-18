@@ -213,3 +213,174 @@
     }
   }
 }
+
+/*
+ * Sahasaknaada — registration experience tokens + scoped utilities.
+ *
+ * Premium dark interface with restrained warm-gold accents. The form surface
+ * is a raised dark panel (#14171C), never a bright yellow block. Gold is an
+ * accent: small labels, decorative sound-wave highlights, active indicators,
+ * and the primary CTA. Kept narrowly scoped so the rest of the site is
+ * unaffected.
+ */
+:root {
+  --reg-bg: #07080a;
+  --reg-bg-2: #0b0d10;
+  --reg-surface: #101216;
+  --reg-raised: #14171c;
+  --reg-raised-2: #191c22;
+  --reg-input: #0e1116;
+  --reg-text: #f5f5f5;
+  --reg-text-2: #a3a7af;
+  --reg-text-muted: #777e89;
+  --reg-edge: rgba(255, 255, 255, 0.09);
+  --reg-edge-strong: rgba(255, 255, 255, 0.14);
+  --reg-gold: #e7b54a;
+  --reg-gold-2: #f0cc78;
+  --reg-gold-edge: rgba(231, 181, 74, 0.26);
+}
+
+@layer components {
+  /* Atmospheric lighting layers for the registration experience */
+  .reg-atmos {
+    background:
+      radial-gradient(46% 50% at 22% 18%, rgba(231, 181, 74, 0.12) 0%, transparent 62%),
+      radial-gradient(42% 46% at 84% 28%, rgba(120, 130, 160, 0.07) 0%, transparent 64%),
+      radial-gradient(120% 80% at 50% 120%, rgba(8, 9, 12, 0.96) 0%, transparent 70%), var(--reg-bg);
+  }
+
+  .reg-atmos::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 38px
+    );
+    mask-image: radial-gradient(80% 70% at 50% 30%, #000 0%, transparent 78%);
+  }
+
+  /* Decorative waveform layers */
+  .reg-wave {
+    color: var(--reg-gold);
+    opacity: 0.5;
+  }
+
+  /* Raised premium form panel */
+  .reg-panel {
+    background: linear-gradient(180deg, rgba(20, 23, 28, 0.9) 0%, rgba(16, 18, 22, 0.92) 100%);
+    border: 1px solid var(--reg-edge);
+    border-radius: 1.5rem;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 24px 80px -32px rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Inputs */
+  .reg-input {
+    background: var(--reg-input);
+    border: 1px solid var(--reg-edge);
+    color: var(--reg-text);
+    border-radius: 0.7rem;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
+  }
+  .reg-input::placeholder {
+    color: var(--reg-text-muted);
+  }
+  .reg-input:focus-visible {
+    outline: none;
+    border-color: var(--reg-gold-edge);
+    box-shadow: 0 0 0 3px rgba(231, 181, 74, 0.16);
+    background: rgba(20, 23, 28, 0.85);
+  }
+  .reg-input[aria-invalid="true"] {
+    border-color: rgba(247, 138, 110, 0.55);
+  }
+}
+
+@layer utilities {
+  /* Staggered entrance reveal — op-only + small translate, reduced-motion safe */
+  .reg-rise {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: reg-rise 0.62s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .reg-rise-2 {
+    animation-delay: 0.08s;
+  }
+  .reg-rise-3 {
+    animation-delay: 0.16s;
+  }
+  .reg-rise-4 {
+    animation-delay: 0.24s;
+  }
+  .reg-rise-5 {
+    animation-delay: 0.32s;
+  }
+  .reg-rise-6 {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes reg-rise {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Primary gold CTA */
+  .reg-cta {
+    background: linear-gradient(180deg, var(--reg-gold-2) 0%, var(--reg-gold) 100%);
+    color: #0a0a0a;
+    border: 1px solid rgba(231, 181, 74, 0.55);
+    box-shadow: 0 6px 22px -10px rgba(231, 181, 74, 0.5);
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.22s ease,
+      filter 0.2s ease;
+  }
+  .reg-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 30px -12px rgba(231, 181, 74, 0.6);
+    filter: brightness(1.04);
+  }
+  .reg-cta:active {
+    transform: translateY(0);
+  }
+
+  /* Slow drift for ambient light */
+  .reg-drift {
+    animation: reg-drift 18s ease-in-out infinite;
+  }
+  @keyframes reg-drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -2%, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reg-rise,
+    .reg-drift,
+    .reg-rise-2,
+    .reg-rise-3,
+    .reg-rise-4,
+    .reg-rise-5,
+    .reg-rise-6 {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+}

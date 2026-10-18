@@ -238,13 +238,13 @@ export function TicketPass({ code, name }: { code: string; name: string }) {
           type="button"
           onClick={downloadPng}
           disabled={downloading || !torn}
-          className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold px-5 py-2.5 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-gold-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-full border border-[var(--reg-gold-edge)] bg-[var(--reg-gold)] px-5 py-2.5 text-sm font-semibold text-[#0A0A0A] transition-colors hover:bg-[var(--reg-gold-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--reg-raised)] disabled:opacity-60"
         >
           <Download className="h-4 w-4" aria-hidden />
           {downloading ? "Generating…" : "Download QR as PNG"}
         </button>
         {downloadError && (
-          <p role="alert" className="text-center text-xs font-medium text-destructive">
+          <p role="alert" className="text-center text-xs font-medium text-[#f78a6e]">
             {downloadError}
           </p>
         )}
