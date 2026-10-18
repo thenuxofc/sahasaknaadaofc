@@ -25,7 +25,7 @@ export type DotGridProps = {
   mouseInteraction?: boolean;
   clickShock?: boolean;
   paused?: boolean;
-  dpr?: number;
+  dpr?: number | undefined;
   className?: string;
   style?: import("react").CSSProperties | undefined;
 };
