@@ -384,3 +384,162 @@
     }
   }
 }
+
+/*
+ * LoadingScreen — premium intro overlay.
+ * Dark canvas, logo, wordmark, restrained sound-waveform. Fades out and
+ * unmounts; never blocks interaction. Reduced-motion safe.
+ */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--background);
+  opacity: 1;
+}
+
+.intro-overlay[data-phase="hide"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-bloom {
+  position: absolute;
+  width: min(620px, 70vw);
+  aspect-ratio: 1 / 1;
+  border-radius: 999px;
+  background: radial-gradient(
+    60% 60% at 50% 42%,
+    color-mix(in oklab, var(--gold) 18%, transparent) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.intro-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.intro-logo-wrap {
+  position: relative;
+  width: clamp(88px, 22vw, 120px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  border-radius: 1.5rem;
+  background: color-mix(in oklab, var(--surface) 80%, transparent);
+  border: 1px solid var(--hairline);
+  padding: 0.65rem;
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.9);
+  animation: intro-pop 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.intro-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 18px rgba(245, 185, 33, 0.18));
+}
+
+.intro-words {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  animation: intro-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 160ms;
+}
+
+.intro-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 4.5vw, 2rem);
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.intro-tag {
+  font-size: clamp(0.6rem, 2.6vw, 0.72rem);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted-foreground);
+}
+
+.intro-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 28px;
+  margin-top: 0.25rem;
+  animation: intro-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 320ms;
+}
+
+.intro-bar {
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    var(--gold) 0%,
+    color-mix(in oklab, var(--gold) 55%, transparent) 100%
+  );
+  transform-origin: bottom;
+  animation: intro-wave 1.4s ease-in-out infinite;
+}
+
+@keyframes intro-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes intro-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-overlay {
+    opacity: 1;
+  }
+  .intro-bloom,
+  .intro-logo-wrap,
+  .intro-words,
+  .intro-wave {
+    animation: none !important;
+  }
+  .intro-bar {
+    animation: none !important;
+    opacity: 0.7;
+  }
+}
