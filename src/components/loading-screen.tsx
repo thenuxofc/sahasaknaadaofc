@@ -65,9 +65,11 @@ export function LoadingScreen() {
       <div className="intro-bloom" aria-hidden />
 
       <div className="intro-stage">
-        {/* Logo mark */}
+        {/* Large, attractive logo anchor with animated halo + ring */}
         <div className="intro-logo-wrap">
-          <img src={EVENT.logoUrl} alt="" className="intro-logo" draggable={false} />
+          <div className="intro-halo" aria-hidden />
+          <div className="intro-ring" aria-hidden />
+          <img src={EVENT.logoUrl} alt={EVENT.name} className="intro-logo" draggable={false} />
         </div>
 
         {/* Wordmark + tagline */}
