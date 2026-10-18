@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 
+import { DotGrid } from "@/components/bits/dot-grid";
 import { FAQS } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
@@ -8,8 +9,28 @@ export function Faq() {
   const [open, setOpen] = useState<string | null>(null);
 
   return (
-    <section id="faq" className="border-b border-hairline">
-      <div className="mx-auto w-full max-w-3xl px-5 py-20 sm:px-8 md:py-28">
+    <section id="faq" className="relative overflow-hidden border-b border-hairline">
+      {/* Ambient dot-grid background — subtle, restrained, reduced-motion safe */}
+      <DotGrid
+        className="pointer-events-none absolute inset-0 z-0"
+        baseColor="#3c3c46"
+        activeColor="#f5b921"
+        dotSize={4}
+        gap={24}
+        proximity={150}
+        strength={1}
+        swell={0.8}
+        stretch={0.5}
+        glow={0.55}
+        opacity={0.9}
+        intro
+        mouseInteraction
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-background/40 via-background/10 to-background/60"
+        aria-hidden
+      />
+      <div className="relative z-10 mx-auto w-full max-w-3xl px-5 py-20 sm:px-8 md:py-28">
         <div className="mb-10 text-center">
           <h2 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             FAQ
