@@ -37,14 +37,16 @@ export type ThemeWord = {
   word: string;
   /** white vs gold emphasis */
   emphasis: "white" | "gold";
-  /** horizontal stagger in rem on desktop */
+  /** horizontal stagger in rem on desktop (paddingLeft inside a w-full row) */
   offset: number;
+  /** horizontal stagger in rem on mobile — small so CREATIVITY never clips */
+  mobileOffset: number;
 };
 
 export const THEMES: ThemeWord[] = [
-  { word: "SOUND", emphasis: "white", offset: 0 },
-  { word: "SCIENCE", emphasis: "gold", offset: 4 },
-  { word: "CREATIVITY", emphasis: "white", offset: 8 },
+  { word: "SOUND", emphasis: "white", offset: 0, mobileOffset: 0 },
+  { word: "SCIENCE", emphasis: "gold", offset: 4, mobileOffset: 0.5 },
+  { word: "CREATIVITY", emphasis: "white", offset: 8, mobileOffset: 1 },
 ];
 
 export type GalleryItem = {

@@ -23,12 +23,12 @@ export function Agenda() {
               <li
                 key={entry.id}
                 data-reveal
-                className="reveal flex items-baseline justify-between gap-6 py-5"
+                className="reveal flex flex-col gap-2 py-5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
               >
-                <div>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
                   <span className="text-lg font-medium text-foreground">{entry.item}</span>
                   {entry.isPlaceholder && (
-                    <span className="ml-3 rounded-full border border-hairline px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    <span className="rounded-full border border-hairline px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                       To be announced
                     </span>
                   )}
