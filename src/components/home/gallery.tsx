@@ -23,15 +23,16 @@ export function Gallery() {
       {/* Ambient dot-grid background — subtle, restrained, reduced-motion safe */}
       <DotGrid
         className="pointer-events-none absolute inset-0 z-0"
-        baseColor="#2e2e34"
+        baseColor="#3c3c46"
         activeColor="#f5b921"
         dotSize={4}
-        gap={22}
-        proximity={140}
+        gap={24}
+        proximity={150}
         strength={1}
         swell={0.8}
-        glow={0.5}
-        opacity={0.85}
+        stretch={0.5}
+        glow={0.55}
+        opacity={0.9}
         intro
         mouseInteraction
       />

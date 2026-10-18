@@ -10,16 +10,17 @@ export function Hero() {
       {/* Background DotGrid for Hero — responsive, interactive WebGL2 dots */}
       <DotGrid
         className="pointer-events-none absolute inset-0 z-0"
-        baseColor="#26262b"
+        baseColor="#3c3c46"
         activeColor="#f5b921"
         dotSize={4}
-        gap={22}
-        proximity={150}
+        gap={24}
+        proximity={160}
         strength={1}
         bounce={0.5}
         swell={0.9}
-        glow={0.55}
-        opacity={0.75}
+        stretch={0.5}
+        glow={0.6}
+        opacity={0.9}
         intro
         mouseInteraction
         clickShock
