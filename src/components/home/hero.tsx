@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { DotGrid } from "@/components/bits/dot-grid";
+import { BlurText } from "@/components/bits/blur-text";
 import { Button } from "@/components/ui/button";
 import { EVENT } from "@/lib/content";
 import { HeroLogo } from "@/components/home/hero-logo";
@@ -43,7 +44,42 @@ export function Hero() {
             data-reveal
             className="reveal mt-5 font-display text-5xl font-bold leading-[0.98] tracking-tight text-foreground text-balance sm:text-6xl md:text-7xl"
           >
-            The Future of <span className="text-gold">{EVENT.heroAccentWord}</span> Starts Here
+            <BlurText
+              text="The Future of"
+              trigger="load"
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              delay={120}
+              stepDuration={0.4}
+              blur={12}
+              distance={40}
+              className="block"
+            />
+            <BlurText
+              text={EVENT.heroAccentWord}
+              trigger="load"
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              delay={120}
+              stepDuration={0.4}
+              blur={12}
+              distance={40}
+              className="block text-gold"
+            />
+            <BlurText
+              text="Starts Here"
+              trigger="load"
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              delay={120}
+              stepDuration={0.4}
+              blur={12}
+              distance={40}
+              className="block"
+            />
           </h1>
 
           <p

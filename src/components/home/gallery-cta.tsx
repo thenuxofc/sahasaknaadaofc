@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
+import { BlurText } from "@/components/bits/blur-text";
 import { Button } from "@/components/ui/button";
 
 export function GalleryCta() {
@@ -14,7 +15,17 @@ export function GalleryCta() {
           <div className="relative flex flex-col items-start gap-8 md:flex-row md:items-center md:justify-between">
             <div className="max-w-xl">
               <h2 className="font-display text-3xl font-bold tracking-tight text-[#0a0a0a] sm:text-4xl md:text-5xl">
-                Be part of the room where sound comes alive.
+                <BlurText
+                  text="Be part of the room where sound comes alive."
+                  trigger="view"
+                  effect="blur"
+                  animateBy="words"
+                  direction="top"
+                  delay={90}
+                  stepDuration={0.35}
+                  blur={10}
+                  distance={32}
+                />
               </h2>
               <p className="mt-4 text-base font-medium leading-relaxed text-[#0a0a0a]/80">
                 Students from any school are welcome to register and take part in Sahasaknaada.

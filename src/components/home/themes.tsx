@@ -1,4 +1,5 @@
 import { TechText } from "@/components/bits/tech-text";
+import { BlurText } from "@/components/bits/blur-text";
 import { THEMES } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
@@ -80,9 +81,17 @@ export function Themes() {
           data-reveal
           className="reveal mt-12 max-w-2xl text-base leading-relaxed text-muted-foreground text-pretty md:mt-14"
         >
-          Sound is the medium. Science is how we understand it. Creativity is what we do with it.
-          Sahasaknaada brings students from different schools together to explore all three — hands
-          on, in one room.
+          <BlurText
+            text="Sound is the medium. Science is how we understand it. Creativity is what we do with it. Sahasaknaada brings students from different schools together to explore all three — hands on, in one room."
+            trigger="view"
+            effect="blur"
+            animateBy="words"
+            direction="top"
+            delay={60}
+            stepDuration={0.3}
+            blur={8}
+            distance={24}
+          />
         </p>
       </div>
     </section>

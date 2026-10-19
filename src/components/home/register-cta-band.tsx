@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
+import { BlurText } from "@/components/bits/blur-text";
 import { Button } from "@/components/ui/button";
 import { EVENT } from "@/lib/content";
 
@@ -18,7 +19,17 @@ export function RegisterCtaBand() {
                 {EVENT.tagline}
               </p>
               <h2 className="mt-4 font-display text-4xl font-bold leading-[1.02] tracking-tight text-[#0a0a0a] sm:text-5xl md:text-6xl text-balance">
-                Your place at Sahasaknaada is one registration away.
+                <BlurText
+                  text="Your place at Sahasaknaada is one registration away."
+                  trigger="view"
+                  effect="blur"
+                  animateBy="words"
+                  direction="top"
+                  delay={80}
+                  stepDuration={0.35}
+                  blur={10}
+                  distance={36}
+                />
               </h2>
               <p className="mt-5 text-lg font-medium leading-relaxed text-[#0a0a0a]/80 text-pretty">
                 Register your spot for the inter-school audio workshop. We'll confirm the details

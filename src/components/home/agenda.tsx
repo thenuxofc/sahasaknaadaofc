@@ -1,3 +1,4 @@
+import { BlurText } from "@/components/bits/blur-text";
 import { AGENDA } from "@/lib/content";
 
 export function Agenda() {
@@ -10,7 +11,17 @@ export function Agenda() {
               The day
             </p>
             <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-              Agenda
+              <BlurText
+                text="Agenda"
+                trigger="view"
+                effect="blur"
+                animateBy="letters"
+                direction="top"
+                delay={50}
+                stepDuration={0.4}
+                blur={12}
+                distance={40}
+              />
             </h2>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
               The final agenda is being confirmed by the organizers. Until then, this is a clearly

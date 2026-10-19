@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 
 import { DotGrid } from "@/components/bits/dot-grid";
 import { FlexCarousel } from "@/components/bits/flex-carousel";
+import { BlurText } from "@/components/bits/blur-text";
 import { GALLERY } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,17 @@ export function Gallery() {
         <div className="mb-10 flex flex-col items-center text-center">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Intra-school</p>
           <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Moments from our workshops
+            <BlurText
+              text="Moments from our workshops"
+              trigger="view"
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              delay={90}
+              stepDuration={0.35}
+              blur={10}
+              distance={36}
+            />
           </h2>
           <p className="mt-3 max-w-md text-sm text-muted-foreground">
             Moments from our previous intra-school workshops. Approved photos to be added.
