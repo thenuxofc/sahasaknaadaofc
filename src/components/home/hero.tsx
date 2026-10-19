@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { DotGrid } from "@/components/bits/dot-grid";
 import { Button } from "@/components/ui/button";
 import { EVENT } from "@/lib/content";
+import { HeroLogo } from "@/components/home/hero-logo";
 
 export function Hero() {
   return (
@@ -71,19 +72,9 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Right: approved event logo visual anchor */}
+        {/* Right: approved event logo visual anchor — metallic gold finish */}
         <div className="relative flex items-center justify-center md:justify-end">
-          <div className="ambient-gold-soft relative flex aspect-[16/10] w-full max-w-lg items-center justify-center overflow-hidden rounded-3xl border border-hairline bg-surface/80 p-6 sm:p-8 md:aspect-[4/3]">
-            <div
-              className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-b from-transparent via-transparent to-black/40"
-              aria-hidden
-            />
-            <img
-              src={EVENT.logoUrl}
-              alt="Sahasaknaada official event logo featuring microphone in hand and stylized lettering"
-              className="relative z-10 max-h-64 w-full object-contain drop-shadow-[0_12px_28px_rgba(245,185,33,0.18)] sm:max-h-72"
-            />
-          </div>
+          <HeroLogo />
         </div>
       </div>
     </section>
