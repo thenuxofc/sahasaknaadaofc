@@ -51,13 +51,15 @@ export function loadSlot(
       if (ctx) {
         ctx.drawImage(image, 0, 0, 8, 8);
         const data = ctx.getImageData(0, 0, 8, 8).data;
-        const avg = [0, 0, 0];
+        let r = 0;
+        let g = 0;
+        let b = 0;
         for (let i = 0; i < data.length; i += 4) {
-          avg[0] += data[i] ?? 0;
-          avg[1] += data[i + 1] ?? 0;
-          avg[2] += data[i + 2] ?? 0;
+          r += data[i] ?? 0;
+          g += data[i + 1] ?? 0;
+          b += data[i + 2] ?? 0;
         }
-        slot.color = avg.map((v) => v / 64 / 255) as [number, number, number];
+        slot.color = [r / 64 / 255, g / 64 / 255, b / 64 / 255];
       }
     } catch {
       slot.color = [0.5, 0.5, 0.5];

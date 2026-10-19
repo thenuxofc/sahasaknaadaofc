@@ -90,11 +90,7 @@ export function attachInput(
       const dy = y - state.pointer.startY;
       const slop = state.pointer.touch ? 10 : 5;
       if (!state.pointer.dragging) {
-        if (
-          state.pointer.touch &&
-          Math.abs(dy) > slop &&
-          Math.abs(dy) > Math.abs(dx)
-        ) {
+        if (state.pointer.touch && Math.abs(dy) > slop && Math.abs(dy) > Math.abs(dx)) {
           state.pointer.down = false;
           return;
         }

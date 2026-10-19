@@ -3,12 +3,7 @@
  * Pure-ish helpers that operate on a mutable state object, kept here so the
  * main engine module stays under the file-size limit.
  */
-import {
-  INTRO_DURATION,
-  type Item,
-  type Settings,
-  type Slot,
-} from "./flex-carousel-types";
+import { INTRO_DURATION, type Item, type Settings, type Slot } from "./flex-carousel-types";
 import {
   clamp01,
   easeInOut,

@@ -16,8 +16,7 @@ export const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
 
 export const easeOut = (value: number) => 1 - Math.pow(1 - clamp01(value), 3);
 
-export const easeOutQuint = (value: number) =>
-  1 - Math.pow(1 - clamp01(value), 5);
+export const easeOutQuint = (value: number) => 1 - Math.pow(1 - clamp01(value), 5);
 
 export const easeInOut = (value: number) => {
   const t = clamp01(value);

@@ -12,10 +12,7 @@ import {
   type Item,
   type Settings,
 } from "./flex-carousel-types";
-import {
-  createEngine,
-  type FlexCarouselHandle,
-} from "./flex-carousel-engine";
+import { createEngine, type FlexCarouselHandle } from "./flex-carousel-engine";
 
 export type { FlexCarouselItem };
 
@@ -133,18 +130,16 @@ export function FlexCarousel({
   useEffect(() => {
     const container = containerRef.current;
     if (!container || typeof window === "undefined") return;
-    const reduce =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     if (reduce) return; // caller renders a scroll-snap fallback
-    const handle = createEngine(
-      container,
+    const handle = createEngine(container, {
       settingsRef,
       itemsRef,
       callbacksRef,
       setRevealed,
       setActive,
       setFocusOpen,
-    );
+    });
     return () => {
       (handle as FlexCarouselHandle | null)?.destroy();
     };
@@ -158,9 +153,7 @@ export function FlexCarousel({
   }, [itemsKey]);
 
   const current = list[active] || list[0];
-  const label = current
-    ? current.title || current.alt || `Image ${active + 1}`
-    : "";
+  const label = current ? current.title || current.alt || `Image ${active + 1}` : "";
 
   return (
     <div
@@ -185,10 +178,7 @@ export function FlexCarousel({
               <span className="flex-carousel__subtitle">{current.subtitle}</span>
             ) : null}
           </span>
-          <span
-            className="flex-carousel__count"
-            data-hidden={focusOpen ? "" : undefined}
-          >
+          <span className="flex-carousel__count" data-hidden={focusOpen ? "" : undefined}>
             <Digits value={active + 1} />
             <span className="flex-carousel__slash">/</span>
             <span>{String(list.length).padStart(2, "0")}</span>

@@ -45,10 +45,7 @@ export type FlexCarouselHandle = {
   destroy: () => void;
 };
 
-export function createEngine(
-  container: HTMLDivElement,
-  refs: EngineRefs,
-): FlexCarouselHandle {
+export function createEngine(container: HTMLDivElement, refs: EngineRefs): FlexCarouselHandle {
   const { settingsRef, itemsRef, callbacksRef, setRevealed, setActive, setFocusOpen } = refs;
   const state = createState();
   let alive = true;
@@ -176,7 +173,7 @@ export function createEngine(
     container,
     state,
     () => settingsRef.current,
-    metricsFor,
+    (s) => metricsFor(state, s),
     () => state.instances,
     (m, d) => {
       stepIndex(state, m, d);
@@ -357,18 +354,24 @@ export function createEngine(
     const travel = Math.abs(state.pos - state.lastPos) / dt;
     state.lastPos = state.pos;
     const energyTarget = reducedMotion ? 0 : Math.min(travel / 2600, 1);
-    state.energy += (energyTarget - state.energy) * (1 - Math.exp(-dt / (energyTarget > state.energy ? 0.07 : 0.35)));
+    state.energy +=
+      (energyTarget - state.energy) *
+      (1 - Math.exp(-dt / (energyTarget > state.energy ? 0.07 : 0.35)));
     if (state.energy > 0.001) animating = true;
     const liquidAmount = reducedMotion ? 0 : s.liquid;
     const push = Math.max(-1, Math.min(1, state.vel / 2200));
     const deformStiffness = 120;
     const deformDamping = 2 * Math.sqrt(deformStiffness) * 0.32;
-    state.deformVel += (deformStiffness * (push - state.deform) - deformDamping * state.deformVel) * dt;
+    state.deformVel +=
+      (deformStiffness * (push - state.deform) - deformDamping * state.deformVel) * dt;
     state.deform += state.deformVel * dt;
     if (Math.abs(state.deform) > 0.0005 || Math.abs(state.deformVel) > 0.005) animating = true;
 
     const focusStiffness = 64;
-    state.focus.v += (focusStiffness * (state.focus.target - state.focus.t) - 2 * Math.sqrt(focusStiffness) * state.focus.v) * dt;
+    state.focus.v +=
+      (focusStiffness * (state.focus.target - state.focus.t) -
+        2 * Math.sqrt(focusStiffness) * state.focus.v) *
+      dt;
     state.focus.t += state.focus.v * dt;
     if (Math.abs(state.focus.target - state.focus.t) < 0.0005 && Math.abs(state.focus.v) < 0.001) {
       state.focus.t = state.focus.target;
@@ -378,8 +381,14 @@ export function createEngine(
     }
     const focusAmount = clamp01(state.focus.t);
     const focusEase = easeInOut(focusAmount);
-    const focusW = state.focus.index >= 0 && state.focus.index < n ? m.widths[state.focus.index] ?? m.cardH : m.cardH;
-    const focusScale = Math.max(1, Math.min(1.3, (state.height * 0.84) / m.cardH, (state.width * 0.92) / focusW));
+    const focusW =
+      state.focus.index >= 0 && state.focus.index < n
+        ? (m.widths[state.focus.index] ?? m.cardH)
+        : m.cardH;
+    const focusScale = Math.max(
+      1,
+      Math.min(1.3, (state.height * 0.84) / m.cardH, (state.width * 0.92) / focusW),
+    );
     const nextLift = 1 + (focusScale - 1) * focusEase;
     if (Math.abs(nextLift - state.lift) > 0.0005) {
       state.lift = nextLift;
@@ -389,7 +398,12 @@ export function createEngine(
     const effects = introEffectsFor(state);
     const homeX = state.width / 2;
     const homeY = state.height / 2;
-    const follow = s.followCursor && state.pointer.over && !state.pointer.dragging && !state.pointer.touch && state.focus.target === 0;
+    const follow =
+      s.followCursor &&
+      state.pointer.over &&
+      !state.pointer.dragging &&
+      !state.pointer.touch &&
+      state.focus.target === 0;
     const aimX = follow ? state.pointer.x : homeX;
     const aimY = follow ? state.pointer.y : homeY;
     if (!state.lens.ready) {
@@ -403,7 +417,10 @@ export function createEngine(
     state.lens.vy += (lensK * (aimY - state.lens.y) - lensC * state.lens.vy) * dt;
     state.lens.x += state.lens.vx * dt;
     state.lens.y += state.lens.vy * dt;
-    if (Math.abs(aimX - state.lens.x) + Math.abs(aimY - state.lens.y) > 0.2 || Math.abs(state.lens.vx) + Math.abs(state.lens.vy) > 0.5)
+    if (
+      Math.abs(aimX - state.lens.x) + Math.abs(aimY - state.lens.y) > 0.2 ||
+      Math.abs(state.lens.vx) + Math.abs(state.lens.vy) > 0.5
+    )
       animating = true;
 
     let halfW = (s.lensWidth * state.width) / 2;
@@ -425,23 +442,25 @@ export function createEngine(
       state.dirty = false;
       state.instances = [];
       const dpr = renderer.dpr;
-      cardProgram.uniforms.uResolution.value = [state.width, state.height];
-      cardProgram.uniforms.uDpr.value = dpr;
-      cardProgram.uniforms.uRadius.value = s.radius;
+      cardProgram.uniforms["uResolution"].value = [state.width, state.height];
+      cardProgram.uniforms["uDpr"].value = dpr;
+      cardProgram.uniforms["uRadius"].value = s.radius;
       const shrink = 1 - clamp01(s.squeeze) * state.energy;
       const draws = buildDraws(state, m, effects, shrink);
       let first = true;
       for (const draw of draws) {
         const slot = state.slots[draw.i];
         if (!slot) continue;
-        cardProgram.uniforms.tMap.value = slot.texture;
-        cardProgram.uniforms.uRect.value = [draw.x, draw.y, draw.cw + 2, draw.ch + 2];
-        cardProgram.uniforms.uSize.value = [draw.cw, draw.ch];
-        cardProgram.uniforms.uImage.value = slot.image;
-        cardProgram.uniforms.uAlpha.value = draw.alpha;
-        cardProgram.uniforms.uReady.value = slot.ready;
-        cardProgram.uniforms.uShift.value = reducedMotion ? 0 : Math.max(-1, Math.min(1, draw.rel / (state.width * 0.75)));
-        cardProgram.uniforms.uPlaceholder.value = slot.color;
+        cardProgram.uniforms["tMap"].value = slot.texture;
+        cardProgram.uniforms["uRect"].value = [draw.x, draw.y, draw.cw + 2, draw.ch + 2];
+        cardProgram.uniforms["uSize"].value = [draw.cw, draw.ch];
+        cardProgram.uniforms["uImage"].value = slot.image;
+        cardProgram.uniforms["uAlpha"].value = draw.alpha;
+        cardProgram.uniforms["uReady"].value = slot.ready;
+        cardProgram.uniforms["uShift"].value = reducedMotion
+          ? 0
+          : Math.max(-1, Math.min(1, draw.rel / (state.width * 0.75)));
+        cardProgram.uniforms["uPlaceholder"].value = slot.color;
         renderer.render({ scene: cardMesh, target, clear: first });
         first = false;
         state.instances.push({
@@ -474,16 +493,26 @@ export function createEngine(
       lensUniforms.uOuter.value = inner * 1.6;
       lensUniforms.uFlow.value = s.bend * (spanW + spanH) * 0.45;
       lensUniforms.uCurl.value = s.curl === "rise" ? 1 : s.curl === "fall" ? -1 : 0;
-      lensUniforms.uDispersion.value = s.dispersion * 0.12 * (1 + Math.abs(state.deform) * liquidAmount * 1.2);
+      lensUniforms.uDispersion.value =
+        s.dispersion * 0.12 * (1 + Math.abs(state.deform) * liquidAmount * 1.2);
       lensUniforms.uStrength.value = effects.strength * (1 - focusEase);
       lensUniforms.uSceneAlpha.value = effects.sceneAlpha;
       renderer.render({ scene: lensMesh });
     }
 
     let nextHover = "";
-    if (state.pointer.over && !state.pointer.dragging && state.intro.done && settingsRef.current?.focusOnClick) {
+    if (
+      state.pointer.over &&
+      !state.pointer.dragging &&
+      state.intro.done &&
+      settingsRef.current?.focusOnClick
+    ) {
       const hit = state.instances.find(
-        (inst) => state.pointer.x >= inst.x0 && state.pointer.x <= inst.x1 && state.pointer.y >= inst.y0 && state.pointer.y <= inst.y1,
+        (inst) =>
+          state.pointer.x >= inst.x0 &&
+          state.pointer.x <= inst.x1 &&
+          state.pointer.y >= inst.y0 &&
+          state.pointer.y <= inst.y1,
       );
       if (state.focus.target > 0) nextHover = "close";
       else if (hit) nextHover = "open";
@@ -515,6 +544,7 @@ export function createEngine(
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(container);
   const intersectionObserver = new IntersectionObserver(([entry]) => {
+    if (!entry) return;
     visible = entry.isIntersecting;
     if (visible) start();
   });
@@ -549,7 +579,9 @@ type Draw = { i: number; rel: number; x: number; y: number; cw: number; ch: numb
 function buildDraws(
   state: EngineState,
   m: { cardH: number; widths: number[]; centers: number[]; loop: number },
-  effects: { card: ((rel: number) => { alpha: number; x: number; y: number; scale: number }) | null },
+  effects: {
+    card: ((rel: number) => { alpha: number; x: number; y: number; scale: number }) | null;
+  },
   shrink: number,
 ): Draw[] {
   const draws: Draw[] = [];
@@ -559,8 +591,14 @@ function buildDraws(
   const homeY = state.height / 2;
   let focusAmount = clamp01(state.focus.t);
   let focusEase = easeInOut(focusAmount);
-  const focusW = state.focus.index >= 0 && state.focus.index < n ? m.widths[state.focus.index] ?? m.cardH : m.cardH;
-  const focusScale = Math.max(1, Math.min(1.3, (state.height * 0.84) / m.cardH, (width * 0.92) / focusW));
+  const focusW =
+    state.focus.index >= 0 && state.focus.index < n
+      ? (m.widths[state.focus.index] ?? m.cardH)
+      : m.cardH;
+  const focusScale = Math.max(
+    1,
+    Math.min(1.3, (state.height * 0.84) / m.cardH, (width * 0.92) / focusW),
+  );
   for (let i = 0; i < n; i++) {
     const w = m.widths[i] ?? 1;
     const baseRel = wrap((m.centers[i] ?? 0) - state.pos, m.loop);
