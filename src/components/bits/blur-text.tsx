@@ -418,7 +418,9 @@ export function BlurText({
   const tinted = Boolean(fromColor) && (phase === "from" || phase === "out");
   const dim = Math.min(6, Math.max(2, blur * 0.3));
   const pieceStyle: MotionStyle = (
-    fx.origin && !custom ? { ...PIECE_STYLE, ...fx.origin } : PIECE_STYLE
+    fx.origin && !custom
+      ? ({ ...PIECE_STYLE, ...fx.origin } as Record<string, unknown>)
+      : (PIECE_STYLE as Record<string, unknown>)
   ) as MotionStyle;
 
   const renderPiece = (index: number) => {

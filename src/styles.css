@@ -622,6 +622,16 @@
   }
 }
 
+/* Route transition overlay — same branded treatment as the intro, but
+   layered above app chrome and below the first-load intro screen. */
+.route-transition {
+  z-index: 90;
+}
+
+.route-transition .intro-stage {
+  animation: intro-rise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .intro-overlay {
     opacity: 1;
