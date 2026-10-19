@@ -57,7 +57,7 @@ export function Gallery() {
             />
           </h2>
           <p className="mt-3 max-w-md text-sm text-muted-foreground">
-            Moments from our previous intra-school workshops. Approved photos to be added.
+            Moments from our previous intra-school workshops at D. S. Senanayake College.
           </p>
         </div>
 
