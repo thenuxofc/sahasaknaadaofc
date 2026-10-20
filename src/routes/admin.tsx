@@ -166,7 +166,7 @@ function AdminDashboard({ staff, onSignOut }: { staff: StaffProfile; onSignOut: 
         <Tabs tab={tab} setTab={setTab} />
         <div className="mt-8">
           {tab === "overview" && <Overview schools={schools} isAdmin={isAdmin} />}
-          {tab === "schools" && <Schools schools={schools} onChanged={refresh} isAdmin={isAdmin} />}
+          {tab === "schools" && <Schools schools={schools} staff={staff} onChanged={refresh} />}
           {tab === "checkin" && <CheckIn schools={schools} onChanged={refresh} />}
           {tab === "export" && <ExportPanel schools={schools} />}
         </div>

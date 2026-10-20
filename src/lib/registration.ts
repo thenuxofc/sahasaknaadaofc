@@ -19,6 +19,7 @@ export type Member = {
   full_name: string;
   grade: string;
   role: MemberRole;
+  created_at: string; // ISO UTC
   email?: string;
   phone?: string;
   notes?: string;
@@ -32,6 +33,9 @@ export type School = {
   registration_code: string; // school-level public code
   status: SchoolStatus;
   teacher_name: string;
+  contact_phone: string;
+  contact_email: string;
+  notes?: string;
   created_at: string; // ISO UTC
   members: Member[];
 };
@@ -62,6 +66,8 @@ export type SchoolPass = {
   grade: string;
   role: MemberRole;
 };
+
+export type PassMember = SchoolPass;
 
 export type SchoolPasses = {
   school: {
@@ -263,12 +269,12 @@ export async function undoCheckIn(memberId: string): Promise<UndoResult> {
 
 /* --------------------------- School management ------------------------- */
 
-export function setSchoolStatus(schoolId: string, status: SchoolStatus) {
+export async function setSchoolStatus(schoolId: string, status: SchoolStatus): Promise<void> {
   const schools = readSchools().map((s) => (s.id === schoolId ? { ...s, status } : s));
   writeSchools(schools);
 }
 
-export function deleteSchool(schoolId: string) {
+export async function deleteSchool(schoolId: string): Promise<void> {
   writeSchools(readSchools().filter((s) => s.id !== schoolId));
 }
 
@@ -334,6 +340,7 @@ export function addRegistration(input: RegistrationInput): { ok: true; record: R
     full_name: input.fullName.trim(),
     grade: input.grade.trim(),
     role: "student",
+    created_at: new Date().toISOString(),
     email: input.email.trim(),
     phone: input.phone.trim(),
     notes: input.notes.trim(),
@@ -353,6 +360,8 @@ export function addRegistration(input: RegistrationInput): { ok: true; record: R
     registration_code: makeCode("SCH"),
     status: "needs_review",
     teacher_name: "",
+    contact_phone: input.phone.trim(),
+    contact_email: input.email.trim(),
     created_at: new Date().toISOString(),
     members: [member],
   };
@@ -389,6 +398,7 @@ function demoMember(
   grade: string,
   role: MemberRole,
   checkedIn: string | null,
+  createdAt: string,
 ): Member {
   return {
     id: makeId(),
@@ -397,6 +407,7 @@ function demoMember(
     full_name: name,
     grade,
     role,
+    created_at: createdAt,
     checked_in_at: checkedIn,
   };
 }
@@ -404,6 +415,9 @@ function demoMember(
 export function seedDemoData(_staff: string) {
   if (readSchools().length > 0) return;
   const now = Date.now();
+  const day2 = new Date(now - 86400000 * 2).toISOString();
+  const day1 = new Date(now - 86400000).toISOString();
+  const hr5 = new Date(now - 3600000 * 5).toISOString();
   const demo: School[] = [
     {
       id: makeId(),
@@ -412,11 +426,21 @@ export function seedDemoData(_staff: string) {
       registration_code: makeCode("SCH"),
       status: "confirmed",
       teacher_name: "Mr. Perera",
-      created_at: new Date(now - 86400000 * 2).toISOString(),
+      contact_phone: "+94 11 269 1234",
+      contact_email: "radio@royalcollege.lk",
+      notes: "Bringing 3 students and the teacher in charge.",
+      created_at: day2,
       members: [
-        demoMember(1, "Aarav Perera", "Grade 11", "student", null),
-        demoMember(2, "Nethmi Silva", "Grade 11", "student", new Date(now - 3600000).toISOString()),
-        demoMember(3, "Mr. Perera", "—", "teacher", null),
+        demoMember(1, "Aarav Perera", "Grade 11", "student", null, day2),
+        demoMember(
+          2,
+          "Nethmi Silva",
+          "Grade 11",
+          "student",
+          new Date(now - 3600000).toISOString(),
+          day2,
+        ),
+        demoMember(3, "Mr. Perera", "—", "teacher", null, day2),
       ],
     },
     {
@@ -426,7 +450,9 @@ export function seedDemoData(_staff: string) {
       registration_code: makeCode("SCH"),
       status: "needs_review",
       teacher_name: "Ms. Fernando",
-      created_at: new Date(now - 86400000).toISOString(),
+      contact_phone: "+94 11 268 5678",
+      contact_email: "av@visakha.edu.lk",
+      created_at: day1,
       members: [
         demoMember(
           1,
@@ -434,8 +460,9 @@ export function seedDemoData(_staff: string) {
           "Grade 12",
           "student",
           new Date(now - 7200000).toISOString(),
+          day1,
         ),
-        demoMember(2, "Kavindi Jayasuriya", "Grade 12", "student", null),
+        demoMember(2, "Kavindi Jayasuriya", "Grade 12", "student", null, day1),
       ],
     },
     {
@@ -445,10 +472,13 @@ export function seedDemoData(_staff: string) {
       registration_code: makeCode("SCH"),
       status: "cancelled",
       teacher_name: "Mr. Wickrama",
-      created_at: new Date(now - 3600000 * 5).toISOString(),
+      contact_phone: "+94 11 269 9012",
+      contact_email: "media@ananda.lk",
+      notes: "Withdrew — clash with their sports meet.",
+      created_at: hr5,
       members: [
-        demoMember(1, "Sahan Wickrama", "Grade 10", "student", null),
-        demoMember(2, "Ishara Bandara", "Grade 10", "student", null),
+        demoMember(1, "Sahan Wickrama", "Grade 10", "student", null, hr5),
+        demoMember(2, "Ishara Bandara", "Grade 10", "student", null, hr5),
       ],
     },
   ];

@@ -65,7 +65,7 @@ export function ExportPanel({ schools }: { schools: School[] }) {
           count={checkedIn}
           onClick={() =>
             run(checkedIn, `sahasaknaada-attendance-${dateStamp()}.csv`, () =>
-              membersToCsv(active, (m) => !!m.checked_in_at),
+              membersToCsv(active, (c) => c),
             )
           }
         />
@@ -74,7 +74,7 @@ export function ExportPanel({ schools }: { schools: School[] }) {
           count={members.length - checkedIn}
           onClick={() =>
             run(members.length - checkedIn, `sahasaknaada-not-arrived-${dateStamp()}.csv`, () =>
-              membersToCsv(active, (m) => !m.checked_in_at),
+              membersToCsv(active, (c) => !c),
             )
           }
         />
