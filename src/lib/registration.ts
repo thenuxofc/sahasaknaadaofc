@@ -1,230 +1,191 @@
 /*
- * Sahasaknaada — registration demo store.
+ * Sahasaknaada — registration data layer (Supabase).
  *
- * DEMO ONLY: Cloud is not enabled on this project, so registrations persist in
- * the browser (localStorage). This is clearly labelled demo data — it is NOT
- * a secure backend and is not private. The public admin route cannot be truly
- * secured without a real backend; see the note at the bottom of this file.
+ * A *school* registers a team. Each team member gets a pass number and a
+ * QR code (the QR encodes the member's pass code). On event day the check-in
+ * desk scans the QR or types the number.
+ *
+ * All authorization lives in the database (RLS + SECURITY DEFINER functions);
+ * nothing in this file is trusted for security.
  */
+import { rpc, select, update, remove } from "@/lib/supabase";
 
-export type RegistrationStatus = "Submitted" | "Confirmed" | "Needs review" | "Cancelled";
+export type SchoolStatus = "confirmed" | "needs_review" | "cancelled";
+export type MemberRole = "student" | "teacher";
 
-export type AttendanceStatus = "Not checked in" | "Checked in";
-
-export type Registration = {
-  id: string; // internal id
-  code: string; // public registration code
-  fullName: string;
-  school: string;
-  grade: string;
-  email: string;
-  phone: string;
-  notes: string;
-  createdAt: string; // ISO UTC
-  status: RegistrationStatus;
-  attendance: AttendanceStatus;
-  checkedInAt: string | null; // ISO UTC
-  checkedInBy: string | null;
-  isDemo: boolean;
+export type Member = {
+  id: string;
+  member_no: number;
+  school_id: string;
+  pass_code: string;
+  full_name: string;
+  grade: string | null;
+  role: MemberRole;
+  checked_in_at: string | null;
+  checked_in_by: string | null;
+  created_at: string;
 };
 
-export type RegistrationInput = {
-  fullName: string;
-  school: string;
-  grade: string;
-  email: string;
-  phone: string;
+export type School = {
+  id: string;
+  school_no: number;
+  registration_code: string;
+  name: string;
+  district: string;
+  teacher_name: string;
+  contact_phone: string;
+  contact_email: string;
+  notes: string | null;
+  status: SchoolStatus;
+  created_at: string;
+  members: Member[];
+};
+
+export type SchoolInput = {
+  name: string;
+  district: string;
+  teacher_name: string;
+  contact_phone: string;
+  contact_email: string;
   notes: string;
 };
 
-const KEY = "sahasaknaada:registrations";
+export type MemberInput = {
+  full_name: string;
+  grade: string;
+  role: MemberRole;
+};
 
-function readAll(): Registration[] {
-  if (typeof window === "undefined") return [];
+/** What a school gets back after registering / looking up its passes. */
+export type PassMember = {
+  member_no: number;
+  pass_code: string;
+  full_name: string;
+  grade: string | null;
+  role: MemberRole;
+};
+
+export type SchoolPasses = {
+  school: {
+    id: string;
+    name: string;
+    district: string;
+    registration_code: string;
+    status: SchoolStatus;
+    teacher_name: string;
+  };
+  members: PassMember[];
+  possible_duplicate?: boolean;
+};
+
+export type MemberCard = {
+  member: {
+    id: string;
+    member_no: number;
+    pass_code: string;
+    full_name: string;
+    grade: string | null;
+    role: MemberRole;
+    checked_in_at: string | null;
+  };
+  school: {
+    id: string;
+    name: string;
+    district: string;
+    registration_code: string;
+    status: SchoolStatus;
+    teacher_name: string;
+  };
+  team: {
+    id: string;
+    member_no: number;
+    full_name: string;
+    role: MemberRole;
+    checked_in_at: string | null;
+  }[];
+};
+
+export type CheckInResult =
+  | {
+      result: "checked_in" | "already_checked_in" | "school_cancelled" | "undone";
+      card: MemberCard;
+    }
+  | { result: "not_found" };
+
+export type EventSettings = {
+  registration_open: boolean;
+  max_members_per_school: number;
+};
+
+/** Display number for a member, e.g. 7 → "0007". */
+export function formatMemberNo(n: number): string {
+  return String(n).padStart(4, "0");
+}
+
+/* ------------------------------- Public API ------------------------------- */
+
+export function registerSchool(school: SchoolInput, members: MemberInput[]): Promise<SchoolPasses> {
+  return rpc<SchoolPasses>("register_school", {
+    p_school: school,
+    p_members: members,
+  });
+}
+
+/** Look passes up again with the school's registration code + contact email. */
+export function getSchoolPasses(code: string, email: string): Promise<SchoolPasses | null> {
+  return rpc<SchoolPasses | null>("get_school_passes", { p_code: code, p_email: email });
+}
+
+const DEFAULT_SETTINGS: EventSettings = { registration_open: true, max_members_per_school: 10 };
+
+export async function getEventSettings(): Promise<EventSettings> {
   try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Registration[];
-    return Array.isArray(parsed) ? parsed : [];
+    const rows = await select<EventSettings[]>(
+      "event_settings?select=registration_open,max_members_per_school&limit=1",
+    );
+    return rows[0] ?? DEFAULT_SETTINGS;
   } catch {
-    return [];
+    return DEFAULT_SETTINGS;
   }
 }
 
-function writeAll(rows: Registration[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(rows));
-  // Notify same-tab listeners.
-  window.dispatchEvent(new CustomEvent("sahasaknaada:registrations-updated"));
+/* ------------------------------- Staff API -------------------------------- */
+
+export type StaffProfile = { user_id: string; display_name: string; role: "admin" | "desk" };
+
+export async function getStaffProfile(userId: string): Promise<StaffProfile | null> {
+  const rows = await select<StaffProfile[]>(
+    `staff?select=user_id,display_name,role&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+  );
+  return rows[0] ?? null;
 }
 
-function makeId() {
-  // crypto.randomUUID is available in modern browsers and the preview runtime.
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return "id-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+export function listSchools(): Promise<School[]> {
+  return select<School[]>("schools?select=*,members(*)&order=created_at.desc");
 }
 
-function makeCode() {
-  // Public-facing registration code: SSA-XXXXXX
-  const n = Math.floor(Math.random() * 0xffffff)
-    .toString(16)
-    .toUpperCase()
-    .padStart(6, "0");
-  return `SSA-${n}`;
+export function checkInMember(code: string): Promise<CheckInResult> {
+  return rpc<CheckInResult>("check_in_member", { p_code: code });
 }
 
-export function addRegistration(input: RegistrationInput): { ok: true; record: Registration } {
-  const record: Registration = {
-    id: makeId(),
-    code: makeCode(),
-    fullName: input.fullName.trim(),
-    school: input.school.trim(),
-    grade: input.grade.trim(),
-    email: input.email.trim(),
-    phone: input.phone.trim(),
-    notes: input.notes.trim(),
-    createdAt: new Date().toISOString(),
-    status: "Submitted",
-    attendance: "Not checked in",
-    checkedInAt: null,
-    checkedInBy: null,
-    isDemo: false,
-  };
-  const rows = readAll();
-  rows.unshift(record);
-  writeAll(rows);
-  return { ok: true, record };
+export function checkInTeam(schoolId: string): Promise<number> {
+  return rpc<number>("check_in_team", { p_school_id: schoolId });
 }
 
-export function listRegistrations(): Registration[] {
-  return readAll();
+export function undoCheckIn(memberId: string): Promise<CheckInResult> {
+  return rpc<CheckInResult>("undo_check_in", { p_member_id: memberId });
 }
 
-export function findLikelyDuplicate(input: RegistrationInput, existing: Registration[]): boolean {
-  const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
-  const name = norm(input.fullName);
-  const email = norm(input.email);
-  if (!name) return false;
-  return existing.some((r) => norm(r.email) === email || norm(r.fullName) === name);
+/* Admin-only (enforced by RLS) */
+
+export function setSchoolStatus(id: string, status: SchoolStatus): Promise<void> {
+  return update(`schools?id=eq.${encodeURIComponent(id)}`, { status });
 }
 
-export function setStatus(id: string, status: RegistrationStatus) {
-  const rows = readAll();
-  const idx = rows.findIndex((r) => r.id === id);
-  if (idx === -1) return;
-  const current = rows[idx];
-  if (!current) return;
-  rows[idx] = { ...current, status };
-  writeAll(rows);
+export function deleteSchool(id: string): Promise<void> {
+  return remove(`schools?id=eq.${encodeURIComponent(id)}`);
 }
 
-export function checkIn(id: string, staff: string) {
-  const rows = readAll();
-  const idx = rows.findIndex((r) => r.id === id);
-  if (idx === -1) return null;
-  const current = rows[idx];
-  if (!current) return null;
-  if (current.attendance === "Checked in") return current;
-  const updated: Registration = {
-    ...current,
-    attendance: "Checked in",
-    checkedInAt: new Date().toISOString(),
-    checkedInBy: staff,
-  };
-  rows[idx] = updated;
-  writeAll(rows);
-  return updated;
+export function saveEventSettings(s: EventSettings): Promise<void> {
+  return update("event_settings?id=eq.true", { ...s, updated_at: new Date().toISOString() });
 }
-
-export function undoCheckIn(id: string) {
-  const rows = readAll();
-  const idx = rows.findIndex((r) => r.id === id);
-  if (idx === -1) return;
-  const current = rows[idx];
-  if (!current) return;
-  rows[idx] = {
-    ...current,
-    attendance: "Not checked in",
-    checkedInAt: null,
-    checkedInBy: null,
-  };
-  writeAll(rows);
-}
-
-export function deleteRegistration(id: string) {
-  const rows = readAll().filter((r) => r.id !== id);
-  writeAll(rows);
-}
-
-export function seedDemoData(staff: string) {
-  const rows = readAll();
-  if (rows.some((r) => r.isDemo)) return;
-  const demos: Omit<Registration, "id" | "code">[] = [
-    {
-      fullName: "Aarav Perera",
-      school: "Royal College Colombo",
-      grade: "Grade 11",
-      email: "demo.1@example.com",
-      phone: "0770000001",
-      notes: "",
-      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-      status: "Confirmed",
-      attendance: "Not checked in",
-      checkedInAt: null,
-      checkedInBy: null,
-      isDemo: true,
-    },
-    {
-      fullName: "Dinithi Fernando",
-      school: "Visakha Vidyalaya",
-      grade: "Grade 12",
-      email: "demo.2@example.com",
-      phone: "0770000002",
-      notes: "Interested in podcasting.",
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      status: "Submitted",
-      attendance: "Checked in",
-      checkedInAt: new Date(Date.now() - 3600000).toISOString(),
-      checkedInBy: staff,
-      isDemo: true,
-    },
-    {
-      fullName: "Sahan Wickrama",
-      school: "Ananda College",
-      grade: "Grade 10",
-      email: "demo.3@example.com",
-      phone: "0770000003",
-      notes: "",
-      createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-      status: "Needs review",
-      attendance: "Not checked in",
-      checkedInAt: null,
-      checkedInBy: null,
-      isDemo: true,
-    },
-  ];
-  writeAll([
-    ...demos.map<Registration>((d) => ({
-      ...d,
-      id: makeId(),
-      code: makeCode(),
-    })),
-    ...rows,
-  ]);
-}
-
-export function clearDemoData() {
-  const rows = readAll().filter((r) => !r.isDemo);
-  writeAll(rows);
-}
-
-/*
- * SECURITY NOTE (until Cloud is enabled):
- * There is no real server-side authorization here. The /admin route is gated
- * by a labelled demo sign-in kept in sessionStorage. Do NOT treat demo
- * registrations as private or production-safe. Enabling Cloud adds real
- * authenticated organizer accounts, a persistent database, and RLS so only
- * signed-in organizers can read or change registration data.
- */

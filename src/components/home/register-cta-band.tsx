@@ -32,8 +32,8 @@ export function RegisterCtaBand() {
                 />
               </h2>
               <p className="mt-5 text-lg font-medium leading-relaxed text-[#0a0a0a]/80 text-pretty">
-                Register your spot for the inter-school audio workshop. We'll confirm the details
-                once your registration is received.
+                Register your school's team for the inter-school audio workshop. Every member gets
+                an entry pass with a QR code for a quick check-in on the day.
               </p>
             </div>
 

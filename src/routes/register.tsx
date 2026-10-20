@@ -1,26 +1,32 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
   AlertTriangle,
   Loader2,
+  Plus,
   Sparkles,
   ShieldCheck,
+  Trash2,
+  Users,
 } from "lucide-react";
 
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
-import { TicketPass } from "@/components/bits/ticket-pass";
+import { PassSheet } from "@/components/pass-card";
 import { RegisterAtmosphere } from "@/components/home/register-atmosphere";
-import { REG_FIELDS, EVENT, type FieldKey } from "@/lib/content";
+import { EVENT } from "@/lib/content";
 import {
-  addRegistration,
-  findLikelyDuplicate,
-  listRegistrations,
-  type RegistrationInput,
+  getEventSettings,
+  registerSchool,
+  type EventSettings,
+  type MemberInput,
+  type MemberRole,
+  type SchoolInput,
+  type SchoolPasses,
 } from "@/lib/registration";
 import { cn } from "@/lib/utils";
 
@@ -45,8 +51,6 @@ export const Route = createFileRoute("/register")({
   }),
   component: RegisterPage,
 });
-
-type Status = "idle" | "submitting" | "success" | "duplicate" | "error";
 
 function RegisterPage() {
   return (
@@ -87,8 +91,9 @@ function RegisterLayout() {
         </h1>
 
         <p className="reg-rise reg-rise-4 max-w-md text-base leading-relaxed text-[var(--reg-text-2)] text-pretty">
-          Fill in your details to register for the inter-school audio workshop. Your pass is
-          generated once your registration is received.
+          Register your school's team in two quick steps: tell us about your school, then add your
+          team members one by one. Every member gets an entry pass with a QR code and a number for a
+          fast check-in on the day.
         </p>
 
         <Waveform />
@@ -107,7 +112,7 @@ function RegisterLayout() {
 
         <p className="reg-rise reg-rise-6 flex items-center gap-2 text-xs text-[var(--reg-text-muted)]">
           <ShieldCheck className="h-4 w-4 text-[var(--reg-gold)]/80" aria-hidden />
-          Your details are only used to manage your registration.
+          Your details are only used to manage your school&apos;s registration.
         </p>
       </div>
 
@@ -145,319 +150,588 @@ function Waveform() {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^[0-9+\-\s()]{7,20}$/;
+const PHONE_RE = /^[0-9+()\s-]{7,20}$/;
+
+type SchoolKey = keyof SchoolInput;
+
+const SCHOOL_FIELDS: {
+  key: SchoolKey;
+  label: string;
+  required: boolean;
+  maxLength: number;
+  type: string;
+  autoComplete: string;
+  hint?: string;
+  wide?: boolean;
+}[] = [
+  {
+    key: "name",
+    label: "School name",
+    required: true,
+    maxLength: 150,
+    type: "text",
+    autoComplete: "organization",
+    wide: true,
+  },
+  {
+    key: "district",
+    label: "District",
+    required: true,
+    maxLength: 80,
+    type: "text",
+    autoComplete: "off",
+  },
+  {
+    key: "teacher_name",
+    label: "Teacher in charge",
+    required: true,
+    maxLength: 100,
+    type: "text",
+    autoComplete: "name",
+  },
+  {
+    key: "contact_phone",
+    label: "Contact number",
+    required: true,
+    maxLength: 20,
+    type: "tel",
+    autoComplete: "tel",
+  },
+  {
+    key: "contact_email",
+    label: "Contact email",
+    required: true,
+    maxLength: 254,
+    type: "email",
+    autoComplete: "email",
+    hint: "You will need this email and your school code to find your passes later.",
+  },
+  {
+    key: "notes",
+    label: "Anything else we should know? (optional)",
+    required: false,
+    maxLength: 500,
+    type: "text",
+    autoComplete: "off",
+    wide: true,
+  },
+];
+
+const EMPTY_SCHOOL: SchoolInput = {
+  name: "",
+  district: "",
+  teacher_name: "",
+  contact_phone: "",
+  contact_email: "",
+  notes: "",
+};
+
+const EMPTY_MEMBER: MemberInput = { full_name: "", grade: "", role: "student" };
+
+const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+
+function validateSchool(v: SchoolInput): Partial<Record<SchoolKey, string>> {
+  const out: Partial<Record<SchoolKey, string>> = {};
+  for (const f of SCHOOL_FIELDS) {
+    const val = v[f.key].trim();
+    const label = f.label.replace(/\s*\(.*\)/, "");
+    if (f.required && !val) {
+      out[f.key] = `${label} is required.`;
+      continue;
+    }
+    if (!val) continue;
+    if (
+      f.key !== "notes" &&
+      f.key !== "contact_phone" &&
+      f.key !== "contact_email" &&
+      val.length < 2
+    ) {
+      out[f.key] = `${label} is too short.`;
+    }
+    if (f.key === "contact_email" && !EMAIL_RE.test(val))
+      out[f.key] = "Enter a valid email address.";
+    if (f.key === "contact_phone" && !PHONE_RE.test(val))
+      out[f.key] = "Enter a valid contact number.";
+    if (val.length > f.maxLength) out[f.key] = `Keep this under ${f.maxLength} characters.`;
+  }
+  return out;
+}
 
 function RegisterForm() {
-  const [values, setValues] = useState<Record<FieldKey, string>>({
-    fullName: "",
-    school: "",
-    grade: "",
-    email: "",
-    phone: "",
-    notes: "",
-  });
-  const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
-  const [status, setStatus] = useState<Status>("idle");
-  const [code, setCode] = useState<string>("");
-  const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({});
+  const [settings, setSettings] = useState<EventSettings | null>(null);
+  const [step, setStep] = useState<"school" | "members">("school");
+  const [school, setSchool] = useState<SchoolInput>(EMPTY_SCHOOL);
+  const [schoolErrors, setSchoolErrors] = useState<Partial<Record<SchoolKey, string>>>({});
+  const [members, setMembers] = useState<MemberInput[]>([]);
+  const [draft, setDraft] = useState<MemberInput>(EMPTY_MEMBER);
+  const [draftError, setDraftError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [result, setResult] = useState<SchoolPasses | null>(null);
 
-  function validate(onSubmit = false): Partial<Record<FieldKey, string>> {
-    const next: Partial<Record<FieldKey, string>> = {};
-    for (const f of REG_FIELDS) {
-      const v = (values[f.key] ?? "").trim();
-      const isTouched = onSubmit || touched[f.key];
-      if (f.required && !v && isTouched) {
-        next[f.key] = `${f.label.replace(/\s*\(.*\)/, "")} is required.`;
-        continue;
-      }
-      if (!v) continue;
-      if (!isTouched && !onSubmit) continue;
-      if (f.key === "email" && !EMAIL_RE.test(v)) {
-        next[f.key] = "Enter a valid email address.";
-      }
-      if (f.key === "phone" && !PHONE_RE.test(v)) {
-        next[f.key] = "Enter a valid contact number.";
-      }
-      if (v.length > f.maxLength) {
-        next[f.key] = `Keep this under ${f.maxLength} characters.`;
-      }
-    }
-    return next;
-  }
-
-  function onBlur(key: FieldKey) {
-    setTouched((t) => ({ ...t, [key]: true }));
-    setErrors(validate());
-  }
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (status === "submitting") return;
-    const found = validate(true);
-    setErrors(found);
-    setTouched({
-      fullName: true,
-      school: true,
-      grade: true,
-      email: true,
-      phone: true,
-      notes: true,
+  useEffect(() => {
+    let active = true;
+    void getEventSettings().then((s) => {
+      if (active) setSettings(s);
     });
-    if (Object.keys(found).length > 0) {
-      setStatus("idle");
-      const firstInvalid = REG_FIELDS.find((f) => found[f.key]);
-      if (firstInvalid) {
-        document.getElementById(`field-${firstInvalid.key}`)?.focus();
-      }
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const max = settings?.max_members_per_school ?? 10;
+  const full = members.length >= max;
+
+  function goToMembers() {
+    const found = validateSchool(school);
+    setSchoolErrors(found);
+    const first = SCHOOL_FIELDS.find((f) => found[f.key]);
+    if (first) {
+      document.getElementById(`field-${first.key}`)?.focus();
       return;
     }
-    setStatus("submitting");
+    setStep("members");
+  }
+
+  function addMember(m: MemberInput = draft): boolean {
+    const name = m.full_name.trim().replace(/\s+/g, " ");
+    if (name.length < 2) {
+      setDraftError("Enter the member's full name.");
+      return false;
+    }
+    if (name.length > 120) {
+      setDraftError("Name is too long.");
+      return false;
+    }
+    if (m.grade.trim().length > 40) {
+      setDraftError("Grade is too long.");
+      return false;
+    }
+    if (members.some((x) => norm(x.full_name) === norm(name))) {
+      setDraftError(`${name} is already on the team.`);
+      return false;
+    }
+    if (full) {
+      setDraftError(`A school can register at most ${max} members.`);
+      return false;
+    }
+    setMembers((list) => [...list, { full_name: name, grade: m.grade.trim(), role: m.role }]);
+    setDraft({ ...EMPTY_MEMBER, role: m.role });
+    setDraftError(null);
+    document.getElementById("member-name")?.focus();
+    return true;
+  }
+
+  async function submit() {
+    if (submitting || members.length === 0) return;
+    setSubmitting(true);
+    setSubmitError(null);
     try {
-      // Honest round-trip so the submitting state is real; the write happens
-      // before success is shown.
-      await new Promise((r) => setTimeout(r, 550));
-      const input: RegistrationInput = {
-        fullName: values.fullName,
-        school: values.school,
-        grade: values.grade,
-        email: values.email,
-        phone: values.phone,
-        notes: values.notes,
-      };
-      const dup = findLikelyDuplicate(input, listRegistrations());
-      const { record } = addRegistration(input);
-      setCode(record.code);
-      setStatus(dup ? "duplicate" : "success");
-    } catch {
-      setStatus("error");
+      const data = await registerSchool(school, members);
+      setResult(data);
+      if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
-  if (status === "success") {
+  if (result) {
     return (
       <SuccessPanel
-        code={code}
-        name={values.fullName}
+        data={result}
+        email={school.contact_email}
         onReset={() => {
-          setValues({ fullName: "", school: "", grade: "", email: "", phone: "", notes: "" });
-          setStatus("idle");
-          setCode("");
-          setErrors({});
-          setTouched({});
+          setResult(null);
+          setSchool(EMPTY_SCHOOL);
+          setMembers([]);
+          setDraft(EMPTY_MEMBER);
+          setStep("school");
         }}
       />
     );
   }
 
+  if (settings && !settings.registration_open) {
+    return (
+      <div className="reg-panel px-6 py-10 text-center sm:px-9">
+        <h2 className="font-display text-2xl font-bold text-[var(--reg-text)]">
+          Registration is closed
+        </h2>
+        <p className="mt-2 text-sm text-[var(--reg-text-2)]">
+          We are not accepting new school registrations right now. Already registered? You can{" "}
+          <Link to="/passes" className="text-[var(--reg-gold)] underline underline-offset-4">
+            get your passes here
+          </Link>
+          .
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <form
-      onSubmit={onSubmit}
-      noValidate
-      className="reg-panel relative overflow-hidden px-6 py-8 sm:px-9 sm:py-9"
-    >
-      {/* Subtle warm highlight along the top edge */}
+    <div className="reg-panel relative overflow-hidden px-6 py-8 sm:px-9 sm:py-9">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[var(--reg-gold-edge)] to-transparent"
       />
-      {/* Faint inner top sheen */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-[1.5rem] bg-gradient-to-b from-white/[0.03] to-transparent"
-      />
-
       <div className="relative">
-        <div className="mb-7 flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span
-                aria-hidden
-                className="h-5 w-1 rounded-full bg-gradient-to-b from-[var(--reg-gold-2)] to-[var(--reg-gold)]"
-              />
-              <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--reg-text)]">
-                Your registration
-              </h2>
-            </div>
+        <ol className="mb-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em]">
+          {(
+            [
+              ["school", "1 · School"],
+              ["members", "2 · Team"],
+            ] as const
+          ).map(([id, label]) => (
+            <li
+              key={id}
+              aria-current={step === id ? "step" : undefined}
+              className={cn(
+                "rounded-full border px-3 py-1",
+                step === id
+                  ? "border-[var(--reg-gold-edge)] bg-[rgba(231,181,74,0.1)] text-[var(--reg-gold)]"
+                  : "border-[var(--reg-edge)] text-[var(--reg-text-muted)]",
+              )}
+            >
+              {label}
+            </li>
+          ))}
+        </ol>
+
+        {step === "school" ? (
+          <form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              goToMembers();
+            }}
+          >
+            <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--reg-text)]">
+              Your school
+            </h2>
             <p className="mt-2 text-sm text-[var(--reg-text-2)]">
-              Fill in your details to register for {EVENT.name}.
+              One registration per school. Fields marked{" "}
+              <span className="text-[var(--reg-gold)]">*</span> are required.
             </p>
-            <p className="mt-1 text-xs text-[var(--reg-text-muted)]">
-              Fields marked <span className="text-[var(--reg-gold)]">*</span> are required.
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              {SCHOOL_FIELDS.map((f) => {
+                const err = schoolErrors[f.key];
+                return (
+                  <div key={f.key} className={cn("flex flex-col gap-2", f.wide && "sm:col-span-2")}>
+                    <label
+                      htmlFor={`field-${f.key}`}
+                      className="text-sm font-medium text-[var(--reg-text)]"
+                    >
+                      {f.label}
+                      {f.required && (
+                        <span className="ml-1 text-[var(--reg-gold)]" aria-hidden>
+                          *
+                        </span>
+                      )}
+                    </label>
+                    {f.key === "notes" ? (
+                      <textarea
+                        id={`field-${f.key}`}
+                        value={school[f.key]}
+                        maxLength={f.maxLength}
+                        rows={3}
+                        onChange={(e) => setSchool((s) => ({ ...s, [f.key]: e.target.value }))}
+                        className="reg-input w-full px-3.5 py-2.5 text-sm"
+                      />
+                    ) : (
+                      <input
+                        id={`field-${f.key}`}
+                        type={f.type}
+                        inputMode={
+                          f.key === "contact_phone"
+                            ? "tel"
+                            : f.key === "contact_email"
+                              ? "email"
+                              : "text"
+                        }
+                        autoComplete={f.autoComplete}
+                        value={school[f.key]}
+                        maxLength={f.maxLength}
+                        onChange={(e) => setSchool((s) => ({ ...s, [f.key]: e.target.value }))}
+                        aria-invalid={!!err}
+                        aria-describedby={err ? `${f.key}-error` : undefined}
+                        className="reg-input w-full px-3.5 py-2.5 text-base"
+                      />
+                    )}
+                    {f.hint && !err && (
+                      <p className="text-xs text-[var(--reg-text-muted)]">{f.hint}</p>
+                    )}
+                    {err && (
+                      <p
+                        id={`${f.key}-error`}
+                        role="alert"
+                        className="text-xs font-medium text-[#f78a6e]"
+                      >
+                        {err}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-7 flex justify-end">
+              <button
+                type="submit"
+                className="reg-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--reg-raised)] sm:w-auto"
+              >
+                Next: add team members
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--reg-text)]">
+              Your team
+            </h2>
+            <p className="mt-2 text-sm text-[var(--reg-text-2)]">
+              Add each member of{" "}
+              <strong className="text-[var(--reg-text)]">{school.name.trim()}</strong> one at a time
+              — students and accompanying teachers. Each gets their own pass.
             </p>
-          </div>
-        </div>
 
-        {status === "duplicate" && (
-          <div
-            className="mb-6 flex items-start gap-3 rounded-xl border border-[rgba(247,138,110,0.3)] bg-[rgba(247,138,110,0.07)] p-4 text-sm text-[var(--reg-text)]"
-            role="status"
-          >
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#f78a6e]" aria-hidden />
-            <p>
-              We may already have a registration under this name or email (code{" "}
-              <strong className="font-semibold text-[var(--reg-gold)]">{code}</strong>). Your new
-              registration was still saved — the organizers will review it.
-            </p>
-          </div>
-        )}
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          {REG_FIELDS.map((f) => {
-            const isNotes = f.key === "notes";
-            const err = errors[f.key];
-            return (
-              <div key={f.key} className={cn("flex flex-col gap-2", isNotes && "sm:col-span-2")}>
-                <label
-                  htmlFor={`field-${f.key}`}
-                  className="text-sm font-medium text-[var(--reg-text)]"
-                >
-                  {f.label}
-                  {f.required && (
-                    <span className="ml-1 text-[var(--reg-gold)]" aria-hidden>
-                      *
-                    </span>
-                  )}
-                </label>
-                {isNotes ? (
-                  <textarea
-                    id={`field-${f.key}`}
-                    name={f.key}
-                    value={values[f.key]}
-                    maxLength={f.maxLength}
-                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                    onBlur={() => onBlur(f.key)}
-                    aria-invalid={!!err}
-                    aria-describedby={err ? `${f.key}-error` : undefined}
-                    rows={3}
-                    className="reg-input w-full px-3.5 py-2.5 text-sm placeholder:text-[var(--reg-text-muted)]"
-                  />
-                ) : (
-                  <input
-                    id={`field-${f.key}`}
-                    name={f.key}
-                    type={f.type}
-                    inputMode={f.key === "phone" ? "tel" : f.key === "email" ? "email" : "text"}
-                    autoComplete={
-                      f.key === "email"
-                        ? "email"
-                        : f.key === "phone"
-                          ? "tel"
-                          : f.key === "fullName"
-                            ? "name"
-                            : "off"
-                    }
-                    value={values[f.key]}
-                    maxLength={f.maxLength}
-                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                    onBlur={() => onBlur(f.key)}
-                    aria-invalid={!!err}
-                    aria-describedby={err ? `${f.key}-error` : undefined}
-                    className="reg-input w-full px-3.5 py-2.5 text-base placeholder:text-[var(--reg-text-muted)]"
-                  />
-                )}
-                {f.hint && !err && <p className="text-xs text-[var(--reg-text-muted)]">{f.hint}</p>}
-                {err && (
-                  <p
-                    id={`${f.key}-error`}
-                    role="alert"
-                    className="text-xs font-medium text-[#f78a6e]"
+            <div className="mt-6 rounded-2xl border border-[var(--reg-edge)] bg-[rgba(14,17,22,0.6)] p-4">
+              <div
+                className="grid gap-3 sm:grid-cols-[1fr_7rem_8rem]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addMember();
+                  }
+                }}
+              >
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="member-name"
+                    className="text-xs font-medium text-[var(--reg-text-2)]"
                   >
-                    {err}
-                  </p>
-                )}
+                    Full name
+                  </label>
+                  <input
+                    id="member-name"
+                    value={draft.full_name}
+                    maxLength={120}
+                    autoComplete="off"
+                    onChange={(e) => setDraft((d) => ({ ...d, full_name: e.target.value }))}
+                    aria-invalid={!!draftError}
+                    className="reg-input w-full px-3.5 py-2.5 text-base"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="member-grade"
+                    className="text-xs font-medium text-[var(--reg-text-2)]"
+                  >
+                    Grade
+                  </label>
+                  <input
+                    id="member-grade"
+                    value={draft.grade}
+                    maxLength={40}
+                    autoComplete="off"
+                    placeholder="e.g. 11"
+                    onChange={(e) => setDraft((d) => ({ ...d, grade: e.target.value }))}
+                    className="reg-input w-full px-3.5 py-2.5 text-base"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="member-role"
+                    className="text-xs font-medium text-[var(--reg-text-2)]"
+                  >
+                    Role
+                  </label>
+                  <select
+                    id="member-role"
+                    value={draft.role}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, role: e.target.value as MemberRole }))
+                    }
+                    className="reg-input w-full px-3 py-2.5 text-base"
+                  >
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                  </select>
+                </div>
               </div>
-            );
-          })}
-        </div>
+              {draftError && (
+                <p role="alert" className="mt-3 text-xs font-medium text-[#f78a6e]">
+                  {draftError}
+                </p>
+              )}
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => addMember()}
+                  disabled={full}
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--reg-gold-edge)] bg-[rgba(231,181,74,0.1)] px-4 py-2 text-sm font-semibold text-[var(--reg-gold)] transition-colors hover:bg-[rgba(231,181,74,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)] disabled:opacity-50"
+                >
+                  <Plus className="h-4 w-4" aria-hidden /> Add member
+                </button>
+                {!members.some((m) => m.role === "teacher") && !full && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addMember({ full_name: school.teacher_name, grade: "", role: "teacher" })
+                    }
+                    className="text-xs text-[var(--reg-text-2)] underline underline-offset-4 hover:text-[var(--reg-text)]"
+                  >
+                    Add {school.teacher_name.trim() || "the teacher in charge"} as a teacher
+                  </button>
+                )}
+                <span className="ml-auto text-xs text-[var(--reg-text-muted)]">
+                  {members.length} of {max} added
+                </span>
+              </div>
+            </div>
 
-        <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="flex items-center gap-2 text-xs text-[var(--reg-text-muted)]">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
-            Your details are only used to manage your registration.
-          </p>
-          <button
-            type="submit"
-            disabled={status === "submitting"}
-            className="reg-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--reg-raised)] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
-          >
-            {status === "submitting" ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                Submitting registration…
-              </>
-            ) : (
-              <>
-                Submit registration
-                <ArrowRight
-                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                  aria-hidden
-                />
-              </>
+            <ul className="mt-5 flex flex-col gap-2" aria-label="Team members added">
+              {members.length === 0 && (
+                <li className="flex items-center gap-2 rounded-xl border border-dashed border-[var(--reg-edge)] p-4 text-sm text-[var(--reg-text-muted)]">
+                  <Users className="h-4 w-4" aria-hidden /> No members yet — add at least one.
+                </li>
+              )}
+              {members.map((m, i) => (
+                <li
+                  key={m.full_name}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--reg-edge)] bg-[var(--reg-input)] px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[var(--reg-text)]">
+                      {i + 1}. {m.full_name}
+                    </p>
+                    <p className="text-xs text-[var(--reg-text-muted)]">
+                      {m.role === "teacher" ? "Teacher" : "Student"}
+                      {m.grade ? ` · Grade ${m.grade}` : ""}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMembers((list) => list.filter((x) => x !== m))}
+                    aria-label={`Remove ${m.full_name}`}
+                    className="rounded-md p-2 text-[var(--reg-text-muted)] transition-colors hover:text-[#f78a6e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)]"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {submitError && (
+              <p role="alert" className="mt-4 text-sm font-medium text-[#f78a6e]">
+                {submitError}
+              </p>
             )}
-          </button>
-        </div>
 
-        {status === "error" && (
-          <p role="alert" className="mt-4 text-sm font-medium text-[#f78a6e]">
-            Something went wrong submitting your registration. Please try again.
-          </p>
+            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="button"
+                onClick={() => setStep("school")}
+                className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-medium text-[var(--reg-text-2)] hover:text-[var(--reg-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)]"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden /> Edit school details
+              </button>
+              <button
+                type="button"
+                onClick={() => void submit()}
+                disabled={submitting || members.length === 0}
+                className="reg-cta inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--reg-raised)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    Registering…
+                  </>
+                ) : (
+                  <>
+                    Register school &amp; get passes
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         )}
+        <p className="mt-6 text-center text-xs text-[var(--reg-text-muted)]">
+          Already registered?{" "}
+          <Link to="/passes" className="text-[var(--reg-gold)] underline underline-offset-4">
+            Get your passes
+          </Link>
+        </p>
       </div>
-    </form>
+    </div>
   );
 }
 
 function SuccessPanel({
-  code,
-  name,
+  data,
+  email,
   onReset,
 }: {
-  code: string;
-  name: string;
+  data: SchoolPasses;
+  email: string;
   onReset: () => void;
 }) {
+  const review = data.possible_duplicate || data.school.status === "needs_review";
   return (
-    <div className="reg-panel relative overflow-hidden px-6 py-10 text-center sm:px-12 sm:py-12">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[var(--reg-gold-edge)] to-transparent"
-      />
-      <div
-        className="reg-rise mx-auto grid h-16 w-16 place-items-center rounded-full border border-[var(--reg-gold-edge)] bg-[rgba(231,181,74,0.1)] text-[var(--reg-gold)]"
-        style={{ boxShadow: "0 0 36px rgba(231,181,74,0.22)" }}
-      >
-        <CheckCircle2 className="h-8 w-8" aria-hidden />
-      </div>
-      <span className="reg-rise reg-rise-2 mt-4 inline-block text-xs font-semibold uppercase tracking-[0.24em] text-[var(--reg-gold)]">
-        Registration received
-      </span>
-      <h2 className="reg-rise reg-rise-3 mt-2 font-display text-3xl font-bold tracking-tight text-[var(--reg-text)] sm:text-4xl text-balance">
-        You're registered, {name.split(" ")[0] || "there"}!
-      </h2>
-      <p className="reg-rise reg-rise-4 mt-2 text-sm text-[var(--reg-text-2)] sm:text-base">
-        Your entry pass has been generated. Save this code or scan the QR at the door:
-      </p>
-
-      {/* Prominent code callout */}
-      <div className="reg-rise reg-rise-5 mt-5 inline-flex items-center gap-3 rounded-2xl border border-[var(--reg-edge)] bg-[var(--reg-input)] px-6 py-3">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--reg-text-muted)]">
-          Pass Code
+    <div className="reg-panel relative overflow-hidden px-6 py-10 sm:px-9 sm:py-11">
+      <div className="no-print text-center">
+        <div
+          className="reg-rise mx-auto grid h-16 w-16 place-items-center rounded-full border border-[var(--reg-gold-edge)] bg-[rgba(231,181,74,0.1)] text-[var(--reg-gold)]"
+          style={{ boxShadow: "0 0 36px rgba(231,181,74,0.22)" }}
+        >
+          <CheckCircle2 className="h-8 w-8" aria-hidden />
+        </div>
+        <span className="reg-rise reg-rise-2 mt-4 inline-block text-xs font-semibold uppercase tracking-[0.24em] text-[var(--reg-gold)]">
+          Registration received
         </span>
-        <span className="font-mono text-2xl font-bold tracking-wider text-[var(--reg-gold)] sm:text-3xl">
-          {code}
-        </span>
+        <h2 className="reg-rise reg-rise-3 mt-2 font-display text-3xl font-bold tracking-tight text-[var(--reg-text)] sm:text-4xl text-balance">
+          {data.school.name} is registered!
+        </h2>
+        <div className="reg-rise reg-rise-4 mt-5 inline-flex items-center gap-3 rounded-2xl border border-[var(--reg-edge)] bg-[var(--reg-input)] px-6 py-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--reg-text-muted)]">
+            School code
+          </span>
+          <span className="font-mono text-2xl font-bold tracking-wider text-[var(--reg-gold)]">
+            {data.school.registration_code}
+          </span>
+        </div>
+
+        {review && (
+          <div
+            className="mx-auto mt-5 flex max-w-md items-start gap-3 rounded-xl border border-[rgba(247,138,110,0.3)] bg-[rgba(247,138,110,0.07)] p-4 text-left text-sm text-[var(--reg-text)]"
+            role="status"
+          >
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#f78a6e]" aria-hidden />
+            <p>
+              We may already have a registration for a school with this name. Yours was still saved
+              and the organizers will review it.
+            </p>
+          </div>
+        )}
+
+        <p className="mx-auto mt-5 max-w-lg text-sm text-[var(--reg-text-2)]">
+          Each team member has their own pass below. Print them, save the PNGs, or take screenshots
+          — the check-in desk scans the QR code or looks up the pass number. Lost them? Use your
+          school code and <strong className="text-[var(--reg-text)]">{email}</strong> on the{" "}
+          <Link to="/passes" className="text-[var(--reg-gold)] underline underline-offset-4">
+            passes page
+          </Link>{" "}
+          any time.
+        </p>
       </div>
 
-      {/* Interactive tear-off ticket with QR */}
-      <div className="reg-rise reg-rise-6 mt-8 flex w-full justify-center">
-        <TicketPass code={code} name={name} />
+      <div className="mt-8">
+        <PassSheet data={data} />
       </div>
 
-      <p className="mx-auto mt-6 max-w-md text-xs text-[var(--reg-text-muted)]">
-        The organizers will confirm the workshop details with you. Keep this ticket or take a
-        screenshot of your pass code.
-      </p>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div className="no-print mt-8 flex flex-wrap items-center justify-center gap-3">
         <Button
           asChild
           variant="outline"
@@ -471,7 +745,7 @@ function SuccessPanel({
           onClick={onReset}
           className="reg-cta inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--reg-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--reg-raised)]"
         >
-          Register another student
+          Register another school
         </button>
       </div>
     </div>
