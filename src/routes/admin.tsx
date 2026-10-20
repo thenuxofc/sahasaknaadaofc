@@ -4,10 +4,10 @@ import { ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useReveal } from "@/hooks/use-reveal";
-import { listRegistrations, seedDemoData, type Registration } from "@/lib/registration";
+import { listSchools, seedDemoData, type School, type StaffProfile } from "@/lib/registration";
 import { AdminTopBar, Tabs, type Tab } from "@/components/admin/primitives";
 import { Overview } from "@/components/admin/overview";
-import { Registrations } from "@/components/admin/registrations";
+import { Schools } from "@/components/admin/schools";
 import { CheckIn } from "@/components/admin/checkin";
 import { ExportPanel } from "@/components/admin/export";
 
@@ -34,36 +34,38 @@ function AdminPage() {
 }
 
 function AdminGate() {
-  const [signedIn, setSignedIn] = useState(false);
-  const [staff, setStaff] = useState("Organizer");
+  const [staff, setStaff] = useState<StaffProfile | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = window.sessionStorage.getItem(SESSION_KEY);
     if (raw) {
-      setStaff(raw);
-      setSignedIn(true);
+      try {
+        setStaff(JSON.parse(raw) as StaffProfile);
+      } catch {
+        /* ignore malformed session */
+      }
     }
   }, []);
 
-  function signIn(name: string) {
-    window.sessionStorage.setItem(SESSION_KEY, name || "Organizer");
-    setStaff(name || "Organizer");
-    setSignedIn(true);
-    seedDemoData(name || "Organizer");
+  function signIn(p: StaffProfile) {
+    window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(p));
+    seedDemoData(p.display_name);
+    setStaff(p);
   }
 
   function signOut() {
     window.sessionStorage.removeItem(SESSION_KEY);
-    setSignedIn(false);
+    setStaff(null);
   }
 
-  if (!signedIn) return <AdminSignIn onSignIn={signIn} />;
+  if (!staff) return <AdminSignIn onSignIn={signIn} />;
   return <AdminDashboard staff={staff} onSignOut={signOut} />;
 }
 
-function AdminSignIn({ onSignIn }: { onSignIn: (name: string) => void }) {
+function AdminSignIn({ onSignIn }: { onSignIn: (p: StaffProfile) => void }) {
   const [name, setName] = useState("");
+  const [role, setRole] = useState<"admin" | "desk">("admin");
   const [pass, setPass] = useState("");
   return (
     <div className="grid min-h-screen place-items-center px-5">
@@ -83,7 +85,7 @@ function AdminSignIn({ onSignIn }: { onSignIn: (name: string) => void }) {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSignIn(name.trim() || "Organizer");
+            onSignIn({ display_name: name.trim() || "Organizer", role });
           }}
           className="mt-6 flex flex-col gap-4"
         >
@@ -95,6 +97,17 @@ function AdminSignIn({ onSignIn }: { onSignIn: (name: string) => void }) {
               className="rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               placeholder="Your name"
             />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">Role</span>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as "admin" | "desk")}
+              className="rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="admin">Admin (full access)</option>
+              <option value="desk">Check-in desk</option>
+            </select>
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-medium">Password</span>
@@ -124,12 +137,12 @@ function AdminSignIn({ onSignIn }: { onSignIn: (name: string) => void }) {
   );
 }
 
-function AdminDashboard({ staff, onSignOut }: { staff: string; onSignOut: () => void }) {
+function AdminDashboard({ staff, onSignOut }: { staff: StaffProfile; onSignOut: () => void }) {
   const [tab, setTab] = useState<Tab>("overview");
-  const [rows, setRows] = useState<Registration[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
 
   useEffect(() => {
-    const load = () => setRows(listRegistrations());
+    const load = () => setSchools(listSchools());
     load();
     const onUpdate = () => load();
     window.addEventListener("sahasaknaada:registrations-updated", onUpdate);
@@ -141,8 +154,10 @@ function AdminDashboard({ staff, onSignOut }: { staff: string; onSignOut: () => 
   }, []);
 
   function refresh() {
-    setRows(listRegistrations());
+    setSchools(listSchools());
   }
+
+  const isAdmin = staff.role === "admin";
 
   return (
     <div className="min-h-screen">
@@ -150,12 +165,10 @@ function AdminDashboard({ staff, onSignOut }: { staff: string; onSignOut: () => 
       <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8">
         <Tabs tab={tab} setTab={setTab} />
         <div className="mt-8">
-          {tab === "overview" && <Overview rows={rows} />}
-          {tab === "registrations" && (
-            <Registrations rows={rows} staff={staff} onChanged={refresh} />
-          )}
-          {tab === "checkin" && <CheckIn rows={rows} staff={staff} onChanged={refresh} />}
-          {tab === "export" && <ExportPanel rows={rows} onReset={refresh} />}
+          {tab === "overview" && <Overview schools={schools} isAdmin={isAdmin} />}
+          {tab === "schools" && <Schools schools={schools} onChanged={refresh} isAdmin={isAdmin} />}
+          {tab === "checkin" && <CheckIn schools={schools} onChanged={refresh} />}
+          {tab === "export" && <ExportPanel schools={schools} />}
         </div>
       </div>
     </div>

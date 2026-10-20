@@ -1,4 +1,4 @@
-import type { Registration } from "@/lib/registration";
+import type { Member, School } from "@/lib/registration";
 
 /** Sri Lanka time display from a UTC ISO string. */
 export function fmtUtcLocal(iso: string) {
@@ -17,43 +17,74 @@ export function dateStamp() {
   return new Date().toISOString().slice(0, 10);
 }
 
-const CSV_HEADER = [
-  "code",
-  "fullName",
-  "school",
-  "grade",
-  "email",
-  "phone",
-  "status",
-  "attendance",
-  "createdAt",
-  "checkedInAt",
-  "checkedInBy",
-  "isDemo",
-] as const;
-
-function esc(v: string) {
-  return `"${String(v).replace(/"/g, '""')}"`;
+function esc(v: unknown) {
+  return `"${String(v ?? "").replace(/"/g, '""')}"`;
 }
 
-/** Serialize registrations to a CSV string. */
-export function toCsv(rows: Registration[]): string {
-  const lines = [CSV_HEADER.join(",")];
-  for (const r of rows) {
+const MEMBER_HEADER = [
+  "member_no",
+  "pass_code",
+  "full_name",
+  "grade",
+  "role",
+  "school",
+  "district",
+  "registration_code",
+  "status",
+  "checked_in_at",
+] as const;
+
+/** Serialize members (across schools) to a CSV string. */
+export function membersToCsv(schools: School[], filter?: (m: Member) => boolean): string {
+  const lines = [MEMBER_HEADER.join(",")];
+  for (const s of schools) {
+    for (const m of s.members) {
+      if (filter ? !filter(m) : false) continue;
+      lines.push(
+        [
+          m.member_no,
+          m.pass_code,
+          m.full_name,
+          m.grade,
+          m.role,
+          s.name,
+          s.district,
+          s.registration_code,
+          s.status,
+          m.checked_in_at ?? "",
+        ]
+          .map((v) => esc(v))
+          .join(","),
+      );
+    }
+  }
+  return lines.join("\n");
+}
+
+const SCHOOL_HEADER = [
+  "registration_code",
+  "name",
+  "district",
+  "teacher_name",
+  "status",
+  "members",
+  "checked_in",
+] as const;
+
+/** Serialize a one-row-per-school summary to a CSV string. */
+export function schoolsToCsv(schools: School[]): string {
+  const lines = [SCHOOL_HEADER.join(",")];
+  for (const s of schools) {
+    const checkedIn = s.members.filter((m) => m.checked_in_at).length;
     lines.push(
       [
-        r.code,
-        r.fullName,
-        r.school,
-        r.grade,
-        r.email,
-        r.phone,
-        r.status,
-        r.attendance,
-        r.createdAt,
-        r.checkedInAt ?? "",
-        r.checkedInBy ?? "",
-        r.isDemo ? "demo" : "real",
+        s.registration_code,
+        s.name,
+        s.district,
+        s.teacher_name,
+        s.status,
+        s.members.length,
+        checkedIn,
       ]
         .map((v) => esc(v))
         .join(","),
